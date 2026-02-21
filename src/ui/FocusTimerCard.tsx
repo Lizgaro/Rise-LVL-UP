@@ -11,6 +11,7 @@ function formatRemaining(ms: number): string {
 export function FocusTimerCard() {
   const timer = useAppStore((state) => state.timer);
   const startFocusSession = useAppStore((state) => state.startFocusSession);
+  const toggleTimerPause = useAppStore((state) => state.toggleTimerPause);
   const tickTimer = useAppStore((state) => state.tickTimer);
   const completeFocusSession = useAppStore((state) => state.completeFocusSession);
   const cancelFocusSession = useAppStore((state) => state.cancelFocusSession);
@@ -83,11 +84,25 @@ export function FocusTimerCard() {
         >
           {timer.phase === "break" ? "Пропустить перерыв" : "Завершить фокус"}
         </button>
+        <button
+          data-testid="pause-focus-btn"
+          type="button"
+          onClick={toggleTimerPause}
+          disabled={timer.phase === "idle"}
+        >
+          {timer.isRunning ? "Пауза" : timer.phase === "idle" ? "Пауза" : "Продолжить"}
+        </button>
         <button type="button" onClick={cancelFocusSession} disabled={!timer.isRunning}>
           Отмена
         </button>
       </div>
-      <p className="muted">{timer.isRunning ? "Сессия идет..." : "Сессия не запущена"}</p>
+      <p className="muted">
+        {timer.isRunning
+          ? "Сессия идет..."
+          : timer.phase === "idle"
+            ? "Сессия не запущена"
+            : "Сессия на паузе"}
+      </p>
     </section>
   );
 }

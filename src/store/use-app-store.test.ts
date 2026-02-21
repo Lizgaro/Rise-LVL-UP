@@ -73,6 +73,26 @@ describe("AppStore", () => {
     expect(state.timer.isRunning).toBe(false);
   });
 
+  it("pauses and resumes active timer without losing remaining time", () => {
+    const nowSpy = vi.spyOn(Date, "now").mockReturnValue(1_000_000);
+    const store = createAppStore();
+    store.getState().startFocusSession(10, 1);
+
+    nowSpy.mockReturnValue(1_120_000);
+    store.getState().toggleTimerPause();
+    const paused = store.getState().timer;
+    expect(paused.phase).toBe("focus");
+    expect(paused.isRunning).toBe(false);
+    expect(paused.remainingMs).toBe(480_000);
+
+    nowSpy.mockReturnValue(1_150_000);
+    store.getState().toggleTimerPause();
+    const resumed = store.getState().timer;
+    expect(resumed.isRunning).toBe(true);
+    expect(resumed.endsAt).toBe(1_150_000 + 480_000);
+    nowSpy.mockRestore();
+  });
+
   it("restores active timer from local storage during load", async () => {
     const now = 2_000_000;
     const spy = vi.spyOn(Date, "now").mockReturnValue(now);

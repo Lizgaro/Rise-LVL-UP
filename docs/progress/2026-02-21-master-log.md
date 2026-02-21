@@ -248,6 +248,18 @@
   - `npm run test:run -- src/core/focus-mode.test.ts src/ui/AppShell.test.tsx` -> PASS
   - `npm run test:run` -> PASS
   - `npm run build` -> PASS
+- Implemented P1/P2 batch #10 (timer pause/resume):
+  - Added `toggleTimerPause` action in store.
+  - Timer now supports pause/resume without losing remaining time.
+  - Updated timer UI with explicit `Пауза` / `Продолжить`.
+  - Updated timer status text for paused state.
+  - Extended tests:
+    - `src/store/use-app-store.test.ts` with pause/resume timing scenario
+    - `src/ui/AppShell.test.tsx` with pause control label check
+- Re-verified after P1/P2 batch #10:
+  - `npm run test:run -- src/store/use-app-store.test.ts src/ui/AppShell.test.tsx` -> PASS
+  - `npm run test:run` -> PASS
+  - `npm run build` -> PASS
 
 ## In Progress
 - Monitoring issue #1 for Jules response.

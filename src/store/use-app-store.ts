@@ -84,6 +84,7 @@ export interface AppActions {
   addHabit: (title: string, mode: HabitMode) => string;
   markHabitStatus: (habitId: string, status: HabitLogStatus, note?: string) => void;
   startFocusSession: (focusMinutes?: number, breakMinutes?: number) => void;
+  toggleTimerPause: () => void;
   applyMissedTasks: (now?: number) => Promise<void>;
   closeDayPlan: () => Promise<void>;
   tickTimer: (now?: number) => void;
@@ -802,6 +803,39 @@ export function createAppStore() {
           focusMinutes: nextFocusMinutes,
           breakMinutes: nextBreakMinutes,
           phase: "focus",
+          isRunning: true,
+          startedAt: now,
+          endsAt: now + remainingMs,
+          remainingMs,
+        };
+        saveTimerSnapshot(timer);
+        return { timer };
+      });
+    },
+
+    toggleTimerPause: () => {
+      const now = Date.now();
+      set((state) => {
+        if (state.timer.phase === "idle") return {};
+
+        if (state.timer.isRunning) {
+          const remainingMs = state.timer.endsAt
+            ? Math.max(0, state.timer.endsAt - now)
+            : state.timer.remainingMs;
+          const timer: TimerUiState = {
+            ...state.timer,
+            isRunning: false,
+            remainingMs,
+            startedAt: undefined,
+            endsAt: undefined,
+          };
+          saveTimerSnapshot(timer);
+          return { timer };
+        }
+
+        const remainingMs = Math.max(0, state.timer.remainingMs);
+        const timer: TimerUiState = {
+          ...state.timer,
           isRunning: true,
           startedAt: now,
           endsAt: now + remainingMs,
