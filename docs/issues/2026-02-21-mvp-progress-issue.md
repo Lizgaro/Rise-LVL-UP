@@ -30,7 +30,8 @@
 
 - Включить стабильный e2e запуск в текущем окружении (сейчас блокер по системной библиотеке `libnspr4.so` для Chromium headless).
 - Добавить расширенные действия для recovery-квеста (автозавершение/истечение).
-- Доработать постоянное хранение не только задач, но и всех доменных сущностей (цели, привычки, планы, RPG).
+- Доработать голосовой ввод (speech -> task/goal/habit/plan).
+- Добавить автоматический `task_missed` и штрафы за невыполнение.
 - Финализировать визуальную полировку минималистичного дизайна.
 
 ## Блокеры
@@ -107,5 +108,30 @@
 ### Осталось (P0)
 
 - Full persistence всех доменных сущностей (не только tasks и timer snapshot).
+- Голосовой ввод `speech -> task/goal/habit/plan`.
+- Автоматический `task_missed` с применением штрафов.
+
+---
+
+## Обновление (2026-02-21): P0 batch #3 - Full Persistence
+
+### Реализовано
+
+- Реализован snapshot-load из IndexedDB для ключевых сущностей:
+  - goals, habits, habitLogs, dayPlan, weekPlan, rpg, recoveryQuest, audioSettings, lastFocusSession.
+- `loadInitial` теперь гидратирует store не только задачами, но и полным persisted состоянием.
+- Добавлена очередь сохранения и `flushPersistence` для детерминированного завершения записи.
+- Добавлено сохранение обновлений в persistence при изменении:
+  - day/week plans
+  - goals и goal progress
+  - habits/habit logs
+  - rpg updates
+  - recovery quest
+  - audio settings
+  - completed focus sessions
+- Добавлен TDD-тест на cross-reload восстановление (goals/habits/plans/rpg/noise).
+
+### Осталось (P0)
+
 - Голосовой ввод `speech -> task/goal/habit/plan`.
 - Автоматический `task_missed` с применением штрафов.

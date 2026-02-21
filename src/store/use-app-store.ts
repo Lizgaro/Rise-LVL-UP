@@ -20,7 +20,21 @@ import type {
   TaskType,
   WeekPlan,
 } from "../domain/types";
-import { getTaskById, getTasks, saveTask } from "../storage/repository";
+import {
+  getTaskById,
+  loadPersistedSnapshot,
+  saveAudioSettings,
+  saveDayPlan,
+  saveFocusSession,
+  saveGoal,
+  saveGoals,
+  saveHabit,
+  saveHabitLog,
+  saveRecoveryQuest,
+  saveRpgProfile,
+  saveTask,
+  saveWeekPlan,
+} from "../storage/repository";
 
 type TimerPhase = "idle" | "focus" | "break";
 
@@ -66,6 +80,7 @@ export interface AppActions {
   cancelFocusSession: () => void;
   setNoiseType: (type: NoiseType) => void;
   setNoiseVolume: (volume: number) => void;
+  flushPersistence: () => Promise<void>;
   clearUiError: () => void;
 }
 
@@ -262,16 +277,38 @@ function advanceTimerState(
 }
 
 export function createAppStore() {
+  let persistenceQueue: Promise<void> = Promise.resolve();
+  const enqueuePersistence = (work: () => Promise<void>): void => {
+    persistenceQueue = persistenceQueue.then(work).catch(() => undefined);
+  };
+
   return createStore<AppStoreState>()((set, get) => ({
     ...initialState,
 
     loadInitial: async () => {
-      const tasks = await getTasks();
+      const snapshot = await loadPersistedSnapshot();
       const storedTimer = loadTimerSnapshot();
       set((state) => ({
-        tasks,
+        tasks: snapshot.tasks,
+        goals: snapshot.goals,
+        habits: snapshot.habits,
+        habitLogs: snapshot.habitLogs,
+        dayPlan: snapshot.dayPlan ?? state.dayPlan,
+        weekPlan: snapshot.weekPlan ?? state.weekPlan,
+        rpg: snapshot.rpg ?? state.rpg,
+        recoveryQuest: snapshot.recoveryQuest,
+        noise: snapshot.audioSettings ?? state.noise,
+        lastFocusSession: snapshot.lastFocusSession ?? state.lastFocusSession,
         timer: storedTimer ?? state.timer,
       }));
+
+      const persistedNoise = snapshot.audioSettings;
+      if (persistedNoise) {
+        noiseController.setVolume(persistedNoise.volume);
+        noiseController.setType(persistedNoise.noiseType);
+        if (persistedNoise.noiseType === "off") noiseController.stop();
+      }
+
       get().tickTimer(Date.now());
     },
 
@@ -326,6 +363,10 @@ export function createAppStore() {
           }
         }
 
+        enqueuePersistence(async () => {
+          await saveRpgProfile(rpg);
+        });
+
         return { tasks, rpg };
       });
     },
@@ -352,6 +393,10 @@ export function createAppStore() {
           },
           uiError: undefined,
         }));
+        const dayPlan = get().dayPlan;
+        enqueuePersistence(async () => {
+          await saveDayPlan(dayPlan);
+        });
       } catch (error) {
         set({ uiError: (error as Error).message });
       }
@@ -368,6 +413,10 @@ export function createAppStore() {
           },
           uiError: undefined,
         }));
+        const weekPlan = get().weekPlan;
+        enqueuePersistence(async () => {
+          await saveWeekPlan(weekPlan);
+        });
       } catch (error) {
         set({ uiError: (error as Error).message });
       }
@@ -391,6 +440,12 @@ export function createAppStore() {
         },
       }));
 
+      const weekPlan = get().weekPlan;
+      enqueuePersistence(async () => {
+        await saveGoal(goal);
+        await saveWeekPlan(weekPlan);
+      });
+
       return goal.id;
     },
 
@@ -408,6 +463,10 @@ export function createAppStore() {
         });
 
         const rpg = applyProgressWithBonus(state.rpg, { type: "goal_step_done" });
+        enqueuePersistence(async () => {
+          await saveGoals(goals);
+          await saveRpgProfile(rpg);
+        });
         return { goals, rpg };
       });
     },
@@ -424,6 +483,9 @@ export function createAppStore() {
       set((state) => ({
         habits: [habit, ...state.habits],
       }));
+      enqueuePersistence(async () => {
+        await saveHabit(habit);
+      });
       return habit.id;
     },
 
@@ -453,6 +515,12 @@ export function createAppStore() {
             status: "active",
           };
         }
+
+        enqueuePersistence(async () => {
+          await saveHabitLog(log);
+          await saveRpgProfile(rpg);
+          await saveRecoveryQuest(recoveryQuest);
+        });
 
         return {
           habitLogs: [log, ...state.habitLogs],
@@ -490,6 +558,14 @@ export function createAppStore() {
         const hasSessionChange = next.lastFocusSession !== state.lastFocusSession;
         if (!next.changed && !hasRpgChange && !hasSessionChange) return {};
         saveTimerSnapshot(next.timer);
+        enqueuePersistence(async () => {
+          if (hasRpgChange) {
+            await saveRpgProfile(next.rpg);
+          }
+          if (hasSessionChange && next.lastFocusSession) {
+            await saveFocusSession(next.lastFocusSession);
+          }
+        });
         return {
           timer: next.timer,
           rpg: next.rpg,
@@ -530,6 +606,10 @@ export function createAppStore() {
                 }
               : createIdleTimer(state.timer.focusMinutes, state.timer.breakMinutes);
           saveTimerSnapshot(timer);
+          enqueuePersistence(async () => {
+            await saveRpgProfile(rpg);
+            await saveFocusSession(lastFocusSession);
+          });
           return { rpg, timer, lastFocusSession };
         }
 
@@ -560,6 +640,10 @@ export function createAppStore() {
           noiseType: type,
         },
       }));
+      const noise = get().noise;
+      enqueuePersistence(async () => {
+        await saveAudioSettings(noise);
+      });
     },
 
     setNoiseVolume: (volume) => {
@@ -570,6 +654,14 @@ export function createAppStore() {
           volume: noiseController.getState().volume,
         },
       }));
+      const noise = get().noise;
+      enqueuePersistence(async () => {
+        await saveAudioSettings(noise);
+      });
+    },
+
+    flushPersistence: async () => {
+      await persistenceQueue;
     },
 
     clearUiError: () => set({ uiError: undefined }),

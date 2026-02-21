@@ -110,6 +110,14 @@
   - Connected noise toggle in store to real playback start/stop.
 - Added/updated noise tests for audio graph creation.
 - Updated README noise description for current behavior.
+- Implemented P0 batch #3 (full persistence for key entities):
+  - Added repository snapshot load for goals/habits/habitLogs/dayPlan/weekPlan/rpg/recovery/audio/lastFocusSession.
+  - Added store hydration from snapshot in `loadInitial`.
+  - Added queued persistence writes for mutated entities.
+  - Added `flushPersistence` action for deterministic sync points in tests.
+- Added TDD coverage for cross-reload restore of goals/habits/plans/rpg/noise:
+  - `src/store/use-app-store.test.ts`
+- Updated README storage description for current behavior.
 - Re-verified after changes:
   - `npm run test:run` -> PASS
   - `npm run build` -> PASS
@@ -117,14 +125,14 @@
 ## In Progress
 - Monitoring issue #1 for Jules response.
 - Executing next P0 items from critical audit checklist:
-  - full persistence
   - voice input
+  - task missed penalties
 
 ## Remaining
 - Run full e2e in environment with required system libs (`libnspr4.so` currently missing).
 - Review Jules output on issue #1 and integrate follow-up changes if needed.
 - Execute remaining P0 checklist from:
-  - `docs/research/2026-02-21-critical-audit-v2.md` (except timer core batch #1 and noise engine batch #2)
+  - `docs/research/2026-02-21-critical-audit-v2.md` (except timer core #1, noise engine #2, persistence #3)
 - Re-verify tests after each P0 increment:
   - `npm run test:run`
   - `npm run build`

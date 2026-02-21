@@ -95,4 +95,36 @@ describe("AppStore", () => {
     expect(timer.remainingMs).toBe(20_000);
     spy.mockRestore();
   });
+
+  it("restores goals habits plans rpg and noise from indexeddb", async () => {
+    const store = createAppStore();
+    const taskId = await store.getState().addTask("Сделать тренировку", "task");
+    store.getState().setDayPlan([taskId]);
+    store.getState().setWeekPlan([taskId]);
+    const goalId = store.getState().addGoal("Прочитать книгу", 2);
+    store.getState().incrementGoalProgress(goalId);
+    const habitId = store.getState().addHabit("Без сигарет", "quit");
+    store.getState().markHabitStatus(habitId, "relapse", "Срыв после стресса");
+    store.getState().setNoiseType("pink");
+    store.getState().setNoiseVolume(0.65);
+
+    const persistedRpg = store.getState().rpg;
+    await store.getState().flushPersistence();
+
+    const restored = createAppStore();
+    await restored.getState().loadInitial();
+    const next = restored.getState();
+
+    expect(next.goals.find((goal) => goal.id === goalId)?.currentCount).toBe(1);
+    expect(next.habits.find((habit) => habit.id === habitId)?.mode).toBe("quit");
+    expect(next.habitLogs.some((log) => log.habitId === habitId)).toBe(true);
+    expect(next.dayPlan.priorityTaskIds).toContain(taskId);
+    expect(next.weekPlan.priorityTaskIds).toContain(taskId);
+    expect(next.weekPlan.goalIds).toContain(goalId);
+    expect(next.rpg.xpTotal).toBe(persistedRpg.xpTotal);
+    expect(next.rpg.level).toBe(persistedRpg.level);
+    expect(next.recoveryQuest?.status).toBe("active");
+    expect(next.noise.noiseType).toBe("pink");
+    expect(next.noise.volume).toBe(0.65);
+  });
 });
