@@ -86,10 +86,13 @@
   - `docs/research/2026-02-21-critical-audit-v2.md`
 - Updated agent orchestration log with new external instructions/results:
   - `docs/progress/2026-02-21-agent-orchestration-log.md`
+- Committed documentation updates locally:
+  - commit `e7b4540`
 
 ## In Progress
 - Monitoring issue #1 for Jules response.
 - Preparing P0 implementation sequence from critical audit checklist (timer, real noise, full persistence, voice input).
+- Restoring GitHub auth in current shell to push `feat/mvp-core`.
 
 ## Remaining
 - Run full e2e in environment with required system libs (`libnspr4.so` currently missing).
@@ -100,6 +103,8 @@
   - `npm run test:run`
   - `npm run build`
   - `npx playwright test` (when system deps are available)
+- Push local commit `e7b4540` to remote branch.
+- Post issue update with "реализовано/осталось" after push.
 
 ## Next Step
 - Align with user on P0 order and start implementation via TDD task batches.
