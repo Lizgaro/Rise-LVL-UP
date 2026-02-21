@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { resolveTimerShortcut } from "../core/timer-shortcuts";
 import { useAppStore } from "../store/use-app-store";
 
 function formatRemaining(ms: number): string {
@@ -25,6 +26,46 @@ export function FocusTimerCard() {
       setBreakMinutes(timer.breakMinutes);
     }
   }, [timer.breakMinutes, timer.focusMinutes, timer.isRunning]);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "SELECT" ||
+          target.tagName === "TEXTAREA" ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+
+      const action = resolveTimerShortcut(event.key, timer.phase);
+      if (!action) return;
+
+      event.preventDefault();
+
+      if (action === "start") {
+        startFocusSession(focusMinutes, breakMinutes);
+        return;
+      }
+      if (action === "togglePause") {
+        toggleTimerPause();
+        return;
+      }
+      cancelFocusSession();
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [
+    breakMinutes,
+    cancelFocusSession,
+    focusMinutes,
+    startFocusSession,
+    timer.phase,
+    toggleTimerPause,
+  ]);
 
   useEffect(() => {
     if (!timer.isRunning) return;
@@ -103,6 +144,7 @@ export function FocusTimerCard() {
             ? "Сессия не запущена"
             : "Сессия на паузе"}
       </p>
+      <p className="muted">Горячие клавиши: Space - старт/пауза, S - старт, R - сброс.</p>
     </section>
   );
 }

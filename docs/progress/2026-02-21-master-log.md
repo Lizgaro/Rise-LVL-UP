@@ -260,6 +260,20 @@
   - `npm run test:run -- src/store/use-app-store.test.ts src/ui/AppShell.test.tsx` -> PASS
   - `npm run test:run` -> PASS
   - `npm run build` -> PASS
+- Implemented P1/P2 batch #11 (timer hotkeys):
+  - Added hotkey resolver module:
+    - `src/core/timer-shortcuts.ts`
+    - `src/core/timer-shortcuts.test.ts`
+  - Integrated keyboard control in timer card:
+    - `Space` -> start/pause
+    - `S` -> start
+    - `R` -> reset/cancel
+  - Added visible hint in timer card with hotkeys map.
+  - Preserved safe behavior: shortcuts ignore typing in inputs/selects/textarea.
+- Re-verified after P1/P2 batch #11:
+  - `npm run test:run -- src/core/timer-shortcuts.test.ts src/ui/AppShell.test.tsx src/store/use-app-store.test.ts` -> PASS
+  - `npm run test:run` -> PASS
+  - `npm run build` -> PASS
 
 ## In Progress
 - Monitoring issue #1 for Jules response.
