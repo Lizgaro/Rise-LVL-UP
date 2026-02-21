@@ -568,3 +568,38 @@
   - PWA/mobile-first
   - расширение browser coverage для storage-protection edge cases
   - персонализированный onboarding по сценарию пользователя.
+
+---
+
+## Обновление (2026-02-22): P1/P2 batch #16 - PWA + Mobile-First Foundation
+
+### Реализовано
+
+- Добавлен PWA-фундамент прод-уровня:
+  - `vite-plugin-pwa` в `vite.config.ts`
+  - web manifest + service worker генерация в build
+  - иконки приложения `public/icons/icon-192.svg` и `public/icons/icon-512.svg`
+  - регистрация SW через `src/pwa.ts` и `src/main.tsx`
+- Добавлен install UX:
+  - карточка `Установить как приложение` (`src/ui/PwaInstallCard.tsx`)
+  - интеграция в `src/ui/AppShell.tsx`
+- Добавлен core-модуль и тесты для определения standalone-режима:
+  - `src/core/pwa-install.ts`
+  - `src/core/pwa-install.test.ts`
+- Усилен mobile-first слой:
+  - touch-target и responsive-контролы в `src/styles.css`
+  - meta-теги для мобильного режима в `index.html`
+- Техническая стабилизация окружения:
+  - после обновления lockfile выполнен `npm install` в Windows для optional Rollup dependency
+- Полная верификация:
+  - `npm run e2e` PASS (6/6)
+  - `npm run test:run` PASS (57/57)
+  - `npm run build` PASS
+
+### Осталось
+
+- Блокирующих задач по MVP-ядру нет.
+- vNext:
+  - PWA update prompt UX
+  - аналитика установки (локально)
+  - расширение browser edge-cases coverage.

@@ -357,13 +357,42 @@
   - `npm run test:run` -> PASS (54/54)
   - `npm run build` -> PASS
 
+## Update (2026-02-22): P1/P2 batch #16 - PWA + Mobile-First Foundation
+- Implemented PWA production foundation:
+  - Added `vite-plugin-pwa` configuration in `vite.config.ts`.
+  - Added web manifest + generated SW build artifacts.
+  - Added app icons:
+    - `public/icons/icon-192.svg`
+    - `public/icons/icon-512.svg`
+  - Added runtime registration:
+    - `src/pwa.ts`
+    - `src/main.tsx`
+  - Added install UX card:
+    - `src/ui/PwaInstallCard.tsx`
+    - integrated into `src/ui/AppShell.tsx`
+- Added PWA detection core + tests:
+  - `src/core/pwa-install.ts`
+  - `src/core/pwa-install.test.ts`
+- Applied mobile-first UX improvements:
+  - improved touch target size and responsive controls in `src/styles.css`
+  - added mobile/meta tags in `index.html`
+- Handled Windows optional dependency regression for Playwright web server:
+  - reinstalled dependencies in Windows environment (`npm install`) after lockfile update.
+- Re-verified full quality gate after PWA/mobile changes:
+  - `npm run e2e` (Windows PowerShell) -> PASS (6/6)
+  - `npm run test:run` -> PASS (57/57)
+  - `npm run build` -> PASS
+- Added housekeeping:
+  - `.gitignore` updated with `dev-dist/`.
+
 ## In Progress
 - No blocking implementation tasks for MVP core.
 
 ## Remaining
 - MVP core scope: completed.
 - Optional vNext backlog (non-blocking):
-  - PWA packaging and mobile-first polish.
+  - PWA install UX analytics (accept/dismiss tracking, local only).
+  - SW update prompt UX (`new version available` flow).
   - Browser coverage hardening for storage-protection UX edge cases.
   - Optional cloud-synced backup workflow (without auth complexity).
   - Onboarding personalization by user scenario (work/study/fitness).

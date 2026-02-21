@@ -237,3 +237,27 @@ Key outputs:
 
 Adoption status:
 - `Partially accepted` (в этой итерации внедрен bootstrap safety и сохранен full regression gate; CI/persistent-storage вынесены в vNext).
+
+### Task P - PWA/Mobile Expert Risk Pass
+
+Instruction sent:
+`Ты PWA/mobile эксперт. Контекст: React/Vite productivity app, local-first, русский UI. Уже внедрено: manifest + service worker + install card + mobile touch-target improvements. Дай коротко: 1) топ-5 рисков прод PWA, 2) топ-5 проверок перед релизом, 3) что критично сделать следующим шагом без backend. Формат: лаконичные буллеты.`
+
+Key outputs:
+- Подтверждены ключевые PWA-риски:
+  - stale service worker/update flow
+  - iOS data eviction
+  - standalone navigation constraints
+  - offline white-screen scenarios
+  - IndexedDB migration safety
+- Выделены pre-release проверки:
+  - update prompt flow
+  - safe-area behavior
+  - strict offline launch checks
+  - maskable icon behavior
+  - lighthouse PWA signals
+- Следующий шаг:
+  - усилить SW update UX и install telemetry (локально).
+
+Adoption status:
+- `Partially accepted` (взяты приоритеты для next batch; backup/restore уже реализован ранее).

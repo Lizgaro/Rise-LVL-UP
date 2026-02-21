@@ -158,6 +158,11 @@ body {
   gap: 4px;
 }
 
+.pwa-card {
+  border-color: #d8dfef;
+  background: linear-gradient(180deg, #ffffff 0%, #f7f9ff 100%);
+}
+
 .card h2,
 .card h3 {
   margin-top: 0;
@@ -271,6 +276,7 @@ input:not([type]) {
   border: 1px solid var(--border);
   padding: 7px 10px;
   background: #ffffff;
+  min-height: 40px;
 }
 
 button {
@@ -339,12 +345,24 @@ progress::-moz-progress-bar {
 
 @media (max-width: 700px) {
   .page {
-    padding: 14px;
+    padding: 14px 14px calc(14px + env(safe-area-inset-bottom, 0px));
   }
 
   .grid,
   .pulse-grid,
   .health-grid {
     grid-template-columns: 1fr;
+  }
+
+  .row label,
+  .row select,
+  .row input[type="text"],
+  .row input[type="number"],
+  .row input[type="range"] {
+    width: 100%;
+  }
+
+  .row button {
+    width: 100%;
   }
 }

@@ -4,6 +4,7 @@
 node_modules/
 .next/
 dist/
+dev-dist/
 coverage/
 playwright-report/
 test-results/

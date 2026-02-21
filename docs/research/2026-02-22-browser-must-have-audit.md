@@ -39,6 +39,8 @@
    - добавлена диагностика persistent storage и кнопка `Защитить данные`.
 6. First-run onboarding:
    - добавлена карточка `Быстрый старт (1 минута)` с фиксацией завершения в local storage.
+7. PWA + mobile-first foundation:
+   - добавлены manifest/service worker/install flow и mobile touch-target улучшения.
 
 ## Практики аналогичных продуктов (что взять, что избегать)
 - Todoist: быстрый capture + минимальный шум в главном экране.
