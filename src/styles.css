@@ -31,6 +31,11 @@ body {
   padding: 14px;
 }
 
+.hero-card {
+  border-color: #d4dbe8;
+  background: linear-gradient(180deg, #ffffff 0%, #f6f8fc 100%);
+}
+
 .card h2,
 .card h3 {
   margin-top: 0;

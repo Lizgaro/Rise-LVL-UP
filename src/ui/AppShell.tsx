@@ -5,6 +5,7 @@ import { NoiseCard } from "./NoiseCard";
 import { PlansCard } from "./PlansCard";
 import { ProgressCard } from "./ProgressCard";
 import { TaskInboxCard } from "./TaskInboxCard";
+import { TodayFocusCard } from "./TodayFocusCard";
 import { useAppStore } from "../store/use-app-store";
 
 export function AppShell() {
@@ -27,6 +28,7 @@ export function AppShell() {
         </div>
       ) : null}
 
+      <TodayFocusCard />
       <FocusTimerCard />
       <TaskInboxCard />
       <PlansCard />

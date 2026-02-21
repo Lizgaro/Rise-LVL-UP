@@ -133,14 +133,21 @@
 - Added TDD coverage for overdue->missed transition with XP decrease:
   - `src/store/use-app-store.test.ts`
 - Updated README with missed-task behavior.
+- Implemented P1 batch #1 (guided UX: "Что делать сейчас"):
+  - Added hero card with next day-priority task.
+  - Added quick actions: start focus and mark current priority done.
+  - Moved hero card to the top of app flow.
+  - Added lightweight hero styling for hierarchy emphasis.
+- Updated UI test coverage:
+  - `src/ui/AppShell.test.tsx` now validates hero section.
+- Updated README with hero-block status.
 - Re-verified after changes:
   - `npm run test:run` -> PASS
   - `npm run build` -> PASS
 
 ## In Progress
 - Monitoring issue #1 for Jules response.
-- Executing next P0 items from critical audit checklist:
-  - none (P0 batches #1..#5 completed)
+- Executing P1 improvements from critical audit checklist.
 
 ## Remaining
 - Run full e2e in environment with required system libs (`libnspr4.so` currently missing).
