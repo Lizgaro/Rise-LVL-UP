@@ -59,5 +59,6 @@ npx playwright install chromium
 
 - Master log: `docs/progress/2026-02-21-master-log.md`
 - Agent orchestration log: `docs/progress/2026-02-21-agent-orchestration-log.md`
+- Critical audit + 10/10 checklist: `docs/research/2026-02-21-critical-audit-v2.md`
 - Design: `docs/plans/2026-02-21-rise-lvl-up-design.md`
 - Implementation plan: `docs/plans/2026-02-21-rise-lvl-up-implementation.md`

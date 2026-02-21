@@ -61,6 +61,33 @@ Key outputs:
 Adoption status:
 - `Partially accepted` (test-id naming and scenario set used as input for Task 8 UI and e2e coverage).
 
+### Task E - Ruthless Product Critique for Current MVP
+
+Instruction sent:
+`Ты выступаешь как безжалостный product-аудитор. Контекст: локальный single-user productivity MVP (React + Zustand + Dexie) с карточками: таймер, задачи, планы, цели, привычки, RPG, шум. Факты: нет voice input, таймер без countdown/автоперехода фаз, шум state-only без реального аудио, persistence фактически только tasks, интерфейс слишком плоский и не мотивирует. Выдай: 1) Топ-15 критических провалов, 2) Приоритеты P0/P1/P2, 3) анти-паттерны, 4) критерии 10/10. Коротко и жестко, русский язык.`
+
+Key outputs:
+- Подтверждено, что текущая версия выглядит как "фасад без функционального ядра" по критичным блокам (таймер/шум/persistence).
+- Даны жесткие P0/P1/P2 приоритеты и anti-patterns для устранения.
+- Сформулированы критерии качества уровня 10/10.
+
+Adoption status:
+- `Partially accepted` (тон смягчен, технические пункты и приоритеты приняты и перенесены в критический чек-лист).
+
+### Task F - Voice Input Architecture (Speech -> Task/Goal/Habit)
+
+Instruction sent:
+`Ты системный архитектор голосовых интерфейсов. Нужен модуль: пользователь говорит фразу, система распознает и автоматически кладет в правильную сущность (задача/цель/привычка/дневной план/недельный план). Ограничения: локальный MVP, без логина, русский UI, безопасность браузера, graceful fallback. Выдай: 1) архитектуру модулей, 2) NLU-правила intent/entity, 3) UX-флоу с ошибками распознавания, 4) план внедрения по этапам с рисками. Формат: markdown, русский, максимально практично.`
+
+Key outputs:
+- Предложена рабочая модульная схема: VoiceCapture -> NLU -> Dispatcher -> Feedback.
+- Даны стартовые intent/entity правила для русского языка.
+- Добавлен UX-флоу подтверждения при низкой confidence и fallback на текстовый ввод.
+- Дано пошаговое внедрение с рисками.
+
+Adoption status:
+- `Accepted as baseline` (подходит как каркас для P0 voice-roadmap).
+
 ## Agent: GitHub @Jules
 
 Status:
