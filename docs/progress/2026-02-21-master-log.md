@@ -88,11 +88,16 @@
   - `docs/progress/2026-02-21-agent-orchestration-log.md`
 - Committed documentation updates locally:
   - commit `e7b4540`
+- Synced critical-audit documentation commits to remote branch:
+  - `e7b4540`
+  - `86654fd`
+  - `b007dc7`
+- Updated issue handoff document with latest "реализовано/осталось":
+  - `docs/issues/2026-02-21-mvp-progress-issue.md`
 
 ## In Progress
 - Monitoring issue #1 for Jules response.
 - Preparing P0 implementation sequence from critical audit checklist (timer, real noise, full persistence, voice input).
-- Restoring GitHub auth in current shell to push `feat/mvp-core`.
 
 ## Remaining
 - Run full e2e in environment with required system libs (`libnspr4.so` currently missing).
@@ -103,8 +108,7 @@
   - `npm run test:run`
   - `npm run build`
   - `npx playwright test` (when system deps are available)
-- Push local commit `e7b4540` to remote branch.
-- Post issue update with "реализовано/осталось" after push.
+- (Optional) Post direct GitHub issue comment update when `gh` is available in this shell.
 
 ## Next Step
 - Align with user on P0 order and start implementation via TDD task batches.
