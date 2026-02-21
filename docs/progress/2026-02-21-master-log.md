@@ -274,6 +274,20 @@
   - `npm run test:run -- src/core/timer-shortcuts.test.ts src/ui/AppShell.test.tsx src/store/use-app-store.test.ts` -> PASS
   - `npm run test:run` -> PASS
   - `npm run build` -> PASS
+- Implemented P1/P2 batch #12 (local backup export/import):
+  - Added repository backup operations:
+    - `exportBackup` for full snapshot JSON
+    - `importBackup` for validated restore
+  - Added backup UX in `ReviewCard`:
+    - `Скачать бэкап`
+    - `Восстановить из файла`
+  - Added/extended tests:
+    - `src/storage/repository.test.ts` backup roundtrip
+    - `src/ui/AppShell.test.tsx` includes `Резервная копия`
+- Re-verified after P1/P2 batch #12:
+  - `npm run test:run -- src/storage/repository.test.ts src/ui/AppShell.test.tsx` -> PASS
+  - `npm run test:run` -> PASS
+  - `npm run build` -> PASS
 
 ## In Progress
 - Monitoring issue #1 for Jules response.

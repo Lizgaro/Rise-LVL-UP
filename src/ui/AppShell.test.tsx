@@ -8,6 +8,7 @@ describe("Russian UI", () => {
     expect(html).toContain("Режим фокуса");
     expect(html).toContain("Пауза");
     expect(html).toContain("Горячие клавиши");
+    expect(html).toContain("Резервная копия");
     expect(html).toContain("Готовность окружения");
     expect(html).toContain("Что делать сейчас");
     expect(html).toContain("Пульс дня");

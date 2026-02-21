@@ -13,6 +13,8 @@ import type {
 import { db } from "./db";
 
 const MAIN_ROW_ID = "main";
+const BACKUP_FORMAT = "rise-lvl-up-backup";
+const BACKUP_VERSION = 1;
 
 export interface PersistedSnapshot {
   tasks: Task[];
@@ -25,6 +27,13 @@ export interface PersistedSnapshot {
   recoveryQuest?: RecoveryQuest;
   audioSettings?: AudioSettings;
   lastFocusSession?: FocusSession;
+}
+
+export interface BackupPayload {
+  format: typeof BACKUP_FORMAT;
+  version: typeof BACKUP_VERSION;
+  exportedAt: number;
+  snapshot: PersistedSnapshot;
 }
 
 export async function saveTask(task: Task): Promise<void> {
@@ -135,6 +144,47 @@ export async function loadPersistedSnapshot(): Promise<PersistedSnapshot> {
     audioSettings,
     lastFocusSession,
   };
+}
+
+export async function exportBackup(): Promise<BackupPayload> {
+  const snapshot = await loadPersistedSnapshot();
+  return {
+    format: BACKUP_FORMAT,
+    version: BACKUP_VERSION,
+    exportedAt: Date.now(),
+    snapshot,
+  };
+}
+
+export async function importBackup(payload: unknown): Promise<void> {
+  if (!payload || typeof payload !== "object") {
+    throw new Error("Некорректный формат бэкапа");
+  }
+  const parsed = payload as Partial<BackupPayload>;
+  if (parsed.format !== BACKUP_FORMAT || parsed.version !== BACKUP_VERSION || !parsed.snapshot) {
+    throw new Error("Неподдерживаемая версия бэкапа");
+  }
+
+  const snapshot = parsed.snapshot;
+  const tasks = Array.isArray(snapshot.tasks) ? snapshot.tasks : [];
+  const goals = Array.isArray(snapshot.goals) ? snapshot.goals : [];
+  const habits = Array.isArray(snapshot.habits) ? snapshot.habits : [];
+  const habitLogs = Array.isArray(snapshot.habitLogs) ? snapshot.habitLogs : [];
+
+  await clearAllData();
+
+  const writes: Promise<unknown>[] = [];
+  if (tasks.length > 0) writes.push(db.tasks.bulkPut(tasks));
+  if (goals.length > 0) writes.push(db.goals.bulkPut(goals));
+  if (habits.length > 0) writes.push(db.habits.bulkPut(habits));
+  if (habitLogs.length > 0) writes.push(db.habitLogs.bulkPut(habitLogs));
+  if (snapshot.dayPlan) writes.push(db.dayPlans.put(snapshot.dayPlan));
+  if (snapshot.weekPlan) writes.push(db.weekPlans.put(snapshot.weekPlan));
+  if (snapshot.rpg) writes.push(db.rpgProfiles.put({ ...snapshot.rpg, id: MAIN_ROW_ID }));
+  if (snapshot.recoveryQuest) writes.push(db.recoveryQuests.put(snapshot.recoveryQuest));
+  if (snapshot.audioSettings) writes.push(db.audioSettings.put({ ...snapshot.audioSettings, id: MAIN_ROW_ID }));
+  if (snapshot.lastFocusSession) writes.push(db.focusSessions.put(snapshot.lastFocusSession));
+  await Promise.all(writes);
 }
 
 export async function clearAllData(): Promise<void> {
