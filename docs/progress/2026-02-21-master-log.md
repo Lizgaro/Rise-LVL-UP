@@ -141,6 +141,14 @@
 - Updated UI test coverage:
   - `src/ui/AppShell.test.tsx` now validates hero section.
 - Updated README with hero-block status.
+- Implemented P1 batch #2 (motivation feedback in progress block):
+  - Added "Сегодняшний прогресс" section in `ProgressCard`.
+  - Added "Последние XP-события" feed with signed deltas.
+  - Added XP event recording in store for key progress events.
+- Added TDD coverage:
+  - `src/store/use-app-store.test.ts` validates XP events are recorded.
+  - `src/ui/AppShell.test.tsx` validates new progress section headings.
+- Updated README with progress-feed status.
 - Re-verified after changes:
   - `npm run test:run` -> PASS
   - `npm run build` -> PASS
@@ -152,13 +160,13 @@
 ## Remaining
 - Run full e2e in environment with required system libs (`libnspr4.so` currently missing).
 - Review Jules output on issue #1 and integrate follow-up changes if needed.
-- Execute remaining P0 checklist from:
-  - `docs/research/2026-02-21-critical-audit-v2.md` (P0 закрыт; далее P1/P2)
-- Re-verify tests after each P0 increment:
+- Execute remaining P1/P2 checklist from:
+  - `docs/research/2026-02-21-critical-audit-v2.md`
+- Re-verify tests after each implementation increment:
   - `npm run test:run`
   - `npm run build`
   - `npx playwright test` (when system deps are available)
 - (Optional) Post direct GitHub issue comment update when `gh` is available in this shell.
 
 ## Next Step
-- Align with user on P0 order and start implementation via TDD task batches.
+- Continue P1 UX polish (streak visibility + clearer weekly summary).

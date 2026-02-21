@@ -6,6 +6,8 @@ describe("Russian UI", () => {
   it("renders core sections in Russian", () => {
     const html = renderToStaticMarkup(<App />);
     expect(html).toContain("Что делать сейчас");
+    expect(html).toContain("Сегодняшний прогресс");
+    expect(html).toContain("Последние XP-события");
     expect(html).toContain("Фокус-таймер");
     expect(html).toContain("Сегодня");
     expect(html).toContain("Неделя");

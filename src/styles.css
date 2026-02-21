@@ -103,6 +103,14 @@ body {
   padding: 10px 12px;
 }
 
+.xp-plus {
+  color: #186230;
+}
+
+.xp-minus {
+  color: #8a1d2a;
+}
+
 button,
 input,
 select {

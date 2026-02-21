@@ -152,4 +152,17 @@ describe("AppStore", () => {
 
     nowSpy.mockRestore();
   });
+
+  it("records recent xp events for user feedback", async () => {
+    const store = createAppStore();
+    const taskId = await store.getState().addTask("Сделать отчет", "task");
+    await store.getState().toggleTaskDone(taskId);
+    const goalId = store.getState().addGoal("Дописать курс", 3);
+    store.getState().incrementGoalProgress(goalId);
+
+    const events = store.getState().xpEvents;
+    expect(events.length).toBeGreaterThan(0);
+    expect(events[0].delta).not.toBe(0);
+    expect(events.some((event) => event.label.includes("Задача"))).toBe(true);
+  });
 });

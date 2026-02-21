@@ -7,6 +7,7 @@ import { TIMER_DEFAULTS } from "../domain/constants";
 import type {
   AudioSettings,
   DayPlan,
+  DomainEvent,
   FocusSession,
   Goal,
   Habit,
@@ -48,6 +49,13 @@ type TimerUiState = {
   endsAt?: number;
 };
 
+type XpEvent = {
+  id: string;
+  label: string;
+  delta: number;
+  createdAt: number;
+};
+
 export interface AppState {
   tasks: Task[];
   goals: Goal[];
@@ -57,6 +65,7 @@ export interface AppState {
   weekPlan: WeekPlan;
   rpg: RPGProfile;
   recoveryQuest?: RecoveryQuest;
+  xpEvents: XpEvent[];
   timer: TimerUiState;
   noise: AudioSettings;
   lastFocusSession?: FocusSession;
@@ -116,6 +125,7 @@ const initialRpg: RPGProfile = {
 
 const MS_IN_MINUTE = 60_000;
 const TIMER_STORAGE_KEY = "rise-lvl-up:timer-v1";
+const MAX_XP_EVENTS = 20;
 
 function clampMinutes(minutes: number, fallback: number): number {
   if (!Number.isFinite(minutes)) return fallback;
@@ -194,6 +204,7 @@ const initialState: Omit<AppStoreState, keyof AppActions> = {
     goalIds: [],
   },
   rpg: initialRpg,
+  xpEvents: [],
   timer: createIdleTimer(TIMER_DEFAULTS.focusMinutes, TIMER_DEFAULTS.breakMinutes),
   noise: {
     noiseType: "off",
@@ -204,12 +215,67 @@ const initialState: Omit<AppStoreState, keyof AppActions> = {
 
 function applyProgressWithBonus(
   profile: RPGProfile,
-  event:
-    | { type: "task_done" | "day_priority_done" | "goal_step_done" | "habit_done" | "habit_skipped" | "habit_relapse" | "task_missed" }
-    | { type: "focus_completed"; minutes: number },
+  event: DomainEvent,
 ): RPGProfile {
   const next = applyEvent(profile, event);
   return next;
+}
+
+function progressEventLabel(event: DomainEvent): string {
+  switch (event.type) {
+    case "task_done":
+      return "Задача выполнена";
+    case "day_priority_done":
+      return "Приоритет дня выполнен";
+    case "goal_step_done":
+      return "Шаг по цели";
+    case "focus_completed":
+      return `Фокус-сессия ${event.minutes} мин`;
+    case "habit_done":
+      return "Привычка выполнена";
+    case "habit_skipped":
+      return "Привычка: пропуск";
+    case "habit_relapse":
+      return "Привычка: срыв";
+    case "task_missed":
+      return "Пропущен приоритет";
+    default:
+      return "Прогресс";
+  }
+}
+
+function mergeXpEvents(current: XpEvent[], additions: XpEvent[]): XpEvent[] {
+  if (additions.length === 0) return current;
+  return [...additions, ...current].slice(0, MAX_XP_EVENTS);
+}
+
+function applyProgressEvents(
+  profile: RPGProfile,
+  events: DomainEvent[],
+  now: number = Date.now(),
+): {
+  rpg: RPGProfile;
+  xpEvents: XpEvent[];
+} {
+  let rpg = profile;
+  const xpEvents: XpEvent[] = [];
+
+  events.forEach((event, index) => {
+    const eventNow = now + index;
+    const before = rpg.xpTotal;
+    rpg = applyProgressWithBonus(rpg, { ...event, now: eventNow });
+    const delta = rpg.xpTotal - before;
+    if (delta !== 0) {
+      xpEvents.unshift({
+        id: makeId(),
+        label: progressEventLabel(event),
+        delta,
+        createdAt: eventNow,
+      });
+    }
+  });
+
+  return { rpg, xpEvents };
 }
 
 function advanceTimerState(
@@ -218,18 +284,22 @@ function advanceTimerState(
 ): {
   timer: TimerUiState;
   rpg: RPGProfile;
+  xpEvents: XpEvent[];
   lastFocusSession?: FocusSession;
   changed: boolean;
 } {
   let timer = state.timer;
   let rpg = state.rpg;
+  let xpEvents: XpEvent[] = [];
   let lastFocusSession = state.lastFocusSession;
   let changed = false;
 
   while (timer.isRunning && timer.endsAt && now >= timer.endsAt) {
     if (timer.phase === "focus") {
       const endedAt = timer.endsAt;
-      rpg = applyProgressWithBonus(rpg, { type: "focus_completed", minutes: timer.focusMinutes });
+      const progress = applyProgressEvents(rpg, [{ type: "focus_completed", minutes: timer.focusMinutes }], endedAt);
+      rpg = progress.rpg;
+      xpEvents = mergeXpEvents(xpEvents, progress.xpEvents);
       lastFocusSession = {
         id: makeId(),
         focusMinutes: timer.focusMinutes,
@@ -274,7 +344,7 @@ function advanceTimerState(
     }
   }
 
-  return { timer, rpg, lastFocusSession, changed };
+  return { timer, rpg, xpEvents, lastFocusSession, changed };
 }
 
 export function createAppStore() {
@@ -354,22 +424,25 @@ export function createAppStore() {
           ? prev.tasks.map((task) => (task.id === id ? nextTask : task))
           : [nextTask, ...prev.tasks];
 
-        let rpg = prev.rpg;
+        const progressEvents: DomainEvent[] = [];
         if (isCompleting) {
-          rpg = applyProgressWithBonus(rpg, { type: "task_done" });
+          progressEvents.push({ type: "task_done" });
           if (prev.dayPlan.priorityTaskIds.includes(id)) {
-            rpg = applyProgressWithBonus(rpg, { type: "day_priority_done" });
+            progressEvents.push({ type: "day_priority_done" });
           }
           if (nextTask.goalId) {
-            rpg = applyProgressWithBonus(rpg, { type: "goal_step_done" });
+            progressEvents.push({ type: "goal_step_done" });
           }
         }
+        const progress = applyProgressEvents(prev.rpg, progressEvents);
+        const rpg = progress.rpg;
+        const xpEvents = mergeXpEvents(prev.xpEvents, progress.xpEvents);
 
         enqueuePersistence(async () => {
           await saveRpgProfile(rpg);
         });
 
-        return { tasks, rpg };
+        return { tasks, rpg, xpEvents };
       });
     },
 
@@ -464,12 +537,14 @@ export function createAppStore() {
           };
         });
 
-        const rpg = applyProgressWithBonus(state.rpg, { type: "goal_step_done" });
+        const progress = applyProgressEvents(state.rpg, [{ type: "goal_step_done" }]);
+        const rpg = progress.rpg;
+        const xpEvents = mergeXpEvents(state.xpEvents, progress.xpEvents);
         enqueuePersistence(async () => {
           await saveGoals(goals);
           await saveRpgProfile(rpg);
         });
-        return { goals, rpg };
+        return { goals, rpg, xpEvents };
       });
     },
 
@@ -501,10 +576,13 @@ export function createAppStore() {
       };
 
       set((state) => {
-        let rpg = state.rpg;
-        if (status === "done") rpg = applyProgressWithBonus(rpg, { type: "habit_done" });
-        if (status === "skipped") rpg = applyProgressWithBonus(rpg, { type: "habit_skipped" });
-        if (status === "relapse") rpg = applyProgressWithBonus(rpg, { type: "habit_relapse" });
+        const progressEvents: DomainEvent[] = [];
+        if (status === "done") progressEvents.push({ type: "habit_done" });
+        if (status === "skipped") progressEvents.push({ type: "habit_skipped" });
+        if (status === "relapse") progressEvents.push({ type: "habit_relapse" });
+        const progress = applyProgressEvents(state.rpg, progressEvents);
+        const rpg = progress.rpg;
+        const xpEvents = mergeXpEvents(state.xpEvents, progress.xpEvents);
 
         let recoveryQuest = state.recoveryQuest;
         if (status === "relapse") {
@@ -527,6 +605,7 @@ export function createAppStore() {
         return {
           habitLogs: [log, ...state.habitLogs],
           rpg,
+          xpEvents,
           recoveryQuest,
         };
       });
@@ -563,12 +642,12 @@ export function createAppStore() {
 
       await Promise.all(missedTasks.map((task) => saveTask(task)));
 
-      let rpg = state.rpg;
-      for (let i = 0; i < missedTasks.length; i += 1) {
-        rpg = applyProgressWithBonus(rpg, { type: "task_missed" });
-      }
+      const progressEvents: DomainEvent[] = missedTasks.map(() => ({ type: "task_missed" }));
+      const progress = applyProgressEvents(state.rpg, progressEvents, checkNow);
+      const rpg = progress.rpg;
+      const xpEvents = mergeXpEvents(state.xpEvents, progress.xpEvents);
 
-      set({ tasks: nextTasks, rpg });
+      set({ tasks: nextTasks, rpg, xpEvents });
       enqueuePersistence(async () => {
         await saveRpgProfile(rpg);
       });
@@ -599,8 +678,9 @@ export function createAppStore() {
       set((state) => {
         const next = advanceTimerState(state, tickNow);
         const hasRpgChange = next.rpg !== state.rpg;
+        const hasXpEvents = next.xpEvents.length > 0;
         const hasSessionChange = next.lastFocusSession !== state.lastFocusSession;
-        if (!next.changed && !hasRpgChange && !hasSessionChange) return {};
+        if (!next.changed && !hasRpgChange && !hasSessionChange && !hasXpEvents) return {};
         saveTimerSnapshot(next.timer);
         enqueuePersistence(async () => {
           if (hasRpgChange) {
@@ -613,6 +693,7 @@ export function createAppStore() {
         return {
           timer: next.timer,
           rpg: next.rpg,
+          xpEvents: mergeXpEvents(state.xpEvents, next.xpEvents),
           lastFocusSession: next.lastFocusSession,
         };
       });
@@ -624,10 +705,14 @@ export function createAppStore() {
         if (!state.timer.isRunning) return {};
 
         if (state.timer.phase === "focus") {
-          const rpg = applyProgressWithBonus(state.rpg, {
-            type: "focus_completed",
-            minutes: state.timer.focusMinutes,
-          });
+          const progress = applyProgressEvents(state.rpg, [
+            {
+              type: "focus_completed",
+              minutes: state.timer.focusMinutes,
+            },
+          ]);
+          const rpg = progress.rpg;
+          const xpEvents = mergeXpEvents(state.xpEvents, progress.xpEvents);
           const lastFocusSession: FocusSession = {
             id: makeId(),
             focusMinutes: state.timer.focusMinutes,
@@ -654,7 +739,7 @@ export function createAppStore() {
             await saveRpgProfile(rpg);
             await saveFocusSession(lastFocusSession);
           });
-          return { rpg, timer, lastFocusSession };
+          return { rpg, xpEvents, timer, lastFocusSession };
         }
 
         const timer = createIdleTimer(state.timer.focusMinutes, state.timer.breakMinutes);
