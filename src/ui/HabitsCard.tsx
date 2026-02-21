@@ -13,12 +13,18 @@ export function HabitsCard() {
     <section className="card">
       <h2>Привычки</h2>
       <div className="row">
-        <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Новая привычка" />
+        <input
+          data-testid="habit-input-field"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Новая привычка"
+        />
         <select value={mode} onChange={(e) => setMode(e.target.value as "build" | "quit")}>
           <option value="build">Развить</option>
           <option value="quit">Избавиться</option>
         </select>
         <button
+          data-testid="habit-submit-btn"
           type="button"
           onClick={() => {
             if (!title.trim()) return;
@@ -43,7 +49,7 @@ export function HabitsCard() {
               <button type="button" onClick={() => markHabitStatus(habit.id, "skipped")}>
                 Пропуск
               </button>
-              <button type="button" onClick={() => markHabitStatus(habit.id, "relapse")}>
+              <button data-testid="habit-relapse-btn" type="button" onClick={() => markHabitStatus(habit.id, "relapse")}>
                 Срыв
               </button>
             </div>

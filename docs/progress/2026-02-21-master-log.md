@@ -289,20 +289,36 @@
   - `npm run test:run` -> PASS
   - `npm run build` -> PASS
 
+## Update (2026-02-21): P1/P2 batch #13 - E2E Stabilization + MVP Closure
+- Stabilized Playwright runtime and selectors for deterministic full-suite runs:
+  - Added Playwright `webServer` auto-start in `playwright.config.ts` (`127.0.0.1:4173`).
+  - Added stable test IDs in planning/habits UI:
+    - `src/ui/PlansCard.tsx`
+    - `src/ui/HabitsCard.tsx`
+  - Updated flaky assertions in:
+    - `e2e/mvp-core.spec.ts`
+- Re-verified full quality gate:
+  - `npm run e2e` (Windows PowerShell) -> PASS (6/6)
+  - `npm run test:run` -> PASS (45/45)
+  - `npm run build` -> PASS
+- Reviewed follow-up from `@Jules`:
+  - Checked issue `#1` and linked PR `#2`.
+  - PR branch is stale relative to current `feat/mvp-core`; no safe delta to integrate.
+  - Decision: keep current branch as source of truth and continue tracking feedback via issue comments.
+- Ran external final Gemini micro-audit (Task K):
+  - Outcome: `8.5/10` current MVP quality.
+  - Logged risk/vNext recommendations in:
+    - `docs/progress/2026-02-21-agent-orchestration-log.md`
+
 ## In Progress
-- Monitoring issue #1 for Jules response.
-- Executing remaining P1/P2 improvements from critical audit checklist.
+- No blocking implementation tasks for MVP core.
 
 ## Remaining
-- Run full e2e in environment with required system libs (`libnspr4.so` currently missing).
-- Review Jules output on issue #1 and integrate follow-up changes if needed.
-- Execute remaining P1/P2 checklist from:
-  - `docs/research/2026-02-21-critical-audit-v2.md`
-- Re-verify tests after each implementation increment:
-  - `npm run test:run`
-  - `npm run build`
-  - `npx playwright test` (when system deps are available)
-- (Optional) Post direct GitHub issue comment update when `gh` is available in this shell.
+- MVP core scope: completed.
+- Optional vNext backlog (non-blocking):
+  - PWA packaging and mobile-first polish.
+  - Optional cloud-synced backup workflow (without auth complexity).
+  - Lightweight first-run onboarding.
 
 ## Next Step
-- Continue P1/P2 polish (visual feedback, animation, and final UX refinement).
+- Start separate vNext planning iteration based on Gemini risk list and user prioritization.

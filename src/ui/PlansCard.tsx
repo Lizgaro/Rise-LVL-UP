@@ -48,6 +48,7 @@ export function PlansCard() {
             return (
               <label key={`day-${task.id}`} className="check">
                 <input
+                  data-testid="day-priority-checkbox"
                   type="checkbox"
                   checked={checked}
                   onChange={(e) => {
@@ -76,6 +77,7 @@ export function PlansCard() {
             return (
               <label key={`week-${task.id}`} className="check">
                 <input
+                  data-testid="week-priority-checkbox"
                   type="checkbox"
                   checked={checked}
                   onChange={(e) => {

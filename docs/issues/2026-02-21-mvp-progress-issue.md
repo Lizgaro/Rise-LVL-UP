@@ -475,3 +475,33 @@
 - Продолжить UX-полировку guided flow и мотивационной обратной связи.
 - Стабилизировать e2e в окружении с системными зависимостями Chromium.
 - Проверить и интегрировать follow-up от @Jules по issue #1.
+
+---
+
+## Обновление (2026-02-21): P1/P2 batch #13 - E2E Stabilization + Final MVP Closure
+
+### Реализовано
+
+- Стабилизирован полный e2e-контур:
+  - добавлен `webServer` в `playwright.config.ts` (авто-старт сервера на `127.0.0.1:4173`)
+  - добавлены стабильные `data-testid` в `PlansCard` и `HabitsCard`
+  - обновлены flaky-assertions в `e2e/mvp-core.spec.ts`
+- Полная верификация:
+  - `npm run e2e` PASS (6/6)
+  - `npm run test:run` PASS (45/45)
+  - `npm run build` PASS
+- Проверен follow-up от @Jules:
+  - проанализирован issue `#1` и PR `#2`
+  - PR признан устаревшим относительно актуальной ветки `feat/mvp-core`
+  - интеграция изменений из PR не требуется
+- Обновлен README:
+  - e2e запуск через `npm run e2e`
+  - зафиксировано поведение автоподнятия web-server для Playwright.
+
+### Осталось
+
+- Blocking-задач по MVP-ядру нет (scope закрыт).
+- Отдельный vNext-бэклог (по желанию):
+  - PWA/mobile-first упаковка
+  - облачный sync для бэкапа без полноценного auth
+  - мини-онбординг первого запуска.

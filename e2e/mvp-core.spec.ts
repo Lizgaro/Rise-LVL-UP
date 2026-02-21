@@ -6,10 +6,12 @@ test.describe("MVP core flows", () => {
 
     await page.getByTestId("task-input-field").fill("Тестовая задача");
     await page.getByTestId("task-submit-btn").click();
-    await expect(page.getByText("Тестовая задача")).toBeVisible();
+    await expect(
+      page.getByTestId("task-item-active").filter({ hasText: "Тестовая задача" }).first(),
+    ).toBeVisible();
 
     await page.getByTestId("task-complete-check").first().click();
-    await expect(page.getByRole("button", { name: "Вернуть" }).first()).toBeVisible();
+    await expect(page.getByText("Активных: 0")).toBeVisible();
   });
 
   test("day priorities are limited to three", async ({ page }) => {
@@ -19,14 +21,15 @@ test.describe("MVP core flows", () => {
     for (const title of ["Задача 1", "Задача 2", "Задача 3", "Задача 4"]) {
       await taskInput.fill(title);
       await page.getByTestId("task-submit-btn").click();
+      await expect(page.getByTestId("task-item-active").filter({ hasText: title }).first()).toBeVisible();
     }
 
-    const todaySection = page.locator("section").filter({ hasText: "Сегодня" }).first();
-    const checks = todaySection.locator('input[type="checkbox"]');
+    const checks = page.getByTestId("day-priority-checkbox");
+    await expect(checks).toHaveCount(4);
     await checks.nth(0).check();
     await checks.nth(1).check();
     await checks.nth(2).check();
-    await checks.nth(3).check();
+    await checks.nth(3).click();
 
     await expect(page.getByText("Можно выбрать максимум 3 приоритета на день")).toBeVisible();
   });
@@ -47,9 +50,9 @@ test.describe("MVP core flows", () => {
   test("habit relapse creates recovery quest", async ({ page }) => {
     await page.goto("/");
 
-    await page.getByPlaceholder("Новая привычка").fill("Без сигарет");
-    await page.getByRole("button", { name: "Добавить" }).nth(1).click();
-    await page.getByRole("button", { name: "Срыв" }).first().click();
+    await page.getByTestId("habit-input-field").fill("Без сигарет");
+    await page.getByTestId("habit-submit-btn").click();
+    await page.getByTestId("habit-relapse-btn").first().click();
 
     await expect(page.getByText("Активен recovery-квест")).toBeVisible();
   });

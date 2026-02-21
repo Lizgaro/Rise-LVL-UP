@@ -57,7 +57,7 @@ npm run test:run
 npm run build
 
 # E2E tests
-npx playwright test e2e/mvp-core.spec.ts
+npm run e2e
 ```
 
 ## Важные заметки по e2e
@@ -67,6 +67,8 @@ npx playwright test e2e/mvp-core.spec.ts
 ```bash
 npx playwright install chromium
 ```
+
+Скрипт `npm run e2e` автоматически поднимает локальный web-server на `127.0.0.1:4173` через конфиг Playwright.
 
 Если в Linux-среде не хватает системных библиотек (например `libnspr4.so`), браузерные e2e не стартуют до установки этих зависимостей в ОС.
 
