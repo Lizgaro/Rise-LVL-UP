@@ -22,11 +22,16 @@ import type {
 } from "../domain/types";
 import { getTaskById, getTasks, saveTask } from "../storage/repository";
 
+type TimerPhase = "idle" | "focus" | "break";
+
 type TimerUiState = {
   focusMinutes: number;
   breakMinutes: number;
   isRunning: boolean;
+  phase: TimerPhase;
+  remainingMs: number;
   startedAt?: number;
+  endsAt?: number;
 };
 
 export interface AppState {
@@ -56,6 +61,7 @@ export interface AppActions {
   addHabit: (title: string, mode: HabitMode) => string;
   markHabitStatus: (habitId: string, status: HabitLogStatus, note?: string) => void;
   startFocusSession: (focusMinutes?: number, breakMinutes?: number) => void;
+  tickTimer: (now?: number) => void;
   completeFocusSession: () => void;
   cancelFocusSession: () => void;
   setNoiseType: (type: NoiseType) => void;
@@ -92,6 +98,71 @@ const initialRpg: RPGProfile = {
   recoveryBoostActionsRemaining: 0,
 };
 
+const MS_IN_MINUTE = 60_000;
+const TIMER_STORAGE_KEY = "rise-lvl-up:timer-v1";
+
+function clampMinutes(minutes: number, fallback: number): number {
+  if (!Number.isFinite(minutes)) return fallback;
+  return Math.max(1, Math.floor(minutes));
+}
+
+function createIdleTimer(focusMinutes: number, breakMinutes: number): TimerUiState {
+  return {
+    focusMinutes,
+    breakMinutes,
+    isRunning: false,
+    phase: "idle",
+    remainingMs: focusMinutes * MS_IN_MINUTE,
+    startedAt: undefined,
+    endsAt: undefined,
+  };
+}
+
+function hasStorage(): boolean {
+  return typeof localStorage !== "undefined";
+}
+
+function saveTimerSnapshot(timer: TimerUiState): void {
+  if (!hasStorage()) return;
+  try {
+    localStorage.setItem(TIMER_STORAGE_KEY, JSON.stringify(timer));
+  } catch {
+    // Ignore storage failures to keep timer usable.
+  }
+}
+
+function loadTimerSnapshot(): TimerUiState | undefined {
+  if (!hasStorage()) return undefined;
+
+  try {
+    const raw = localStorage.getItem(TIMER_STORAGE_KEY);
+    if (!raw) return undefined;
+    const parsed = JSON.parse(raw) as Partial<TimerUiState>;
+    const focusMinutes = clampMinutes(parsed.focusMinutes ?? TIMER_DEFAULTS.focusMinutes, TIMER_DEFAULTS.focusMinutes);
+    const breakMinutes = clampMinutes(parsed.breakMinutes ?? TIMER_DEFAULTS.breakMinutes, TIMER_DEFAULTS.breakMinutes);
+    const phase: TimerPhase =
+      parsed.phase === "focus" || parsed.phase === "break" || parsed.phase === "idle"
+        ? parsed.phase
+        : "idle";
+    const isRunning = Boolean(parsed.isRunning) && phase !== "idle";
+    const remainingMs = Math.max(0, Number(parsed.remainingMs ?? focusMinutes * MS_IN_MINUTE));
+    const startedAt = typeof parsed.startedAt === "number" ? parsed.startedAt : undefined;
+    const endsAt = typeof parsed.endsAt === "number" ? parsed.endsAt : undefined;
+
+    return {
+      focusMinutes,
+      breakMinutes,
+      phase,
+      isRunning,
+      remainingMs,
+      startedAt,
+      endsAt,
+    };
+  } catch {
+    return undefined;
+  }
+}
+
 const initialState: Omit<AppStoreState, keyof AppActions> = {
   tasks: [],
   goals: [],
@@ -107,11 +178,7 @@ const initialState: Omit<AppStoreState, keyof AppActions> = {
     goalIds: [],
   },
   rpg: initialRpg,
-  timer: {
-    focusMinutes: TIMER_DEFAULTS.focusMinutes,
-    breakMinutes: TIMER_DEFAULTS.breakMinutes,
-    isRunning: false,
-  },
+  timer: createIdleTimer(TIMER_DEFAULTS.focusMinutes, TIMER_DEFAULTS.breakMinutes),
   noise: {
     noiseType: "off",
     volume: noiseController.getState().volume,
@@ -129,13 +196,83 @@ function applyProgressWithBonus(
   return next;
 }
 
+function advanceTimerState(
+  state: Pick<AppStoreState, "timer" | "rpg" | "lastFocusSession">,
+  now: number,
+): {
+  timer: TimerUiState;
+  rpg: RPGProfile;
+  lastFocusSession?: FocusSession;
+  changed: boolean;
+} {
+  let timer = state.timer;
+  let rpg = state.rpg;
+  let lastFocusSession = state.lastFocusSession;
+  let changed = false;
+
+  while (timer.isRunning && timer.endsAt && now >= timer.endsAt) {
+    if (timer.phase === "focus") {
+      const endedAt = timer.endsAt;
+      rpg = applyProgressWithBonus(rpg, { type: "focus_completed", minutes: timer.focusMinutes });
+      lastFocusSession = {
+        id: makeId(),
+        focusMinutes: timer.focusMinutes,
+        breakMinutes: timer.breakMinutes,
+        startedAt: timer.startedAt ?? endedAt - timer.focusMinutes * MS_IN_MINUTE,
+        endedAt,
+        status: "done",
+      };
+
+      const breakMs = timer.breakMinutes * MS_IN_MINUTE;
+      if (breakMs > 0) {
+        timer = {
+          ...timer,
+          phase: "break",
+          startedAt: endedAt,
+          endsAt: endedAt + breakMs,
+          remainingMs: Math.max(0, endedAt + breakMs - now),
+          isRunning: true,
+        };
+      } else {
+        timer = createIdleTimer(timer.focusMinutes, timer.breakMinutes);
+      }
+      changed = true;
+      continue;
+    }
+
+    timer = createIdleTimer(timer.focusMinutes, timer.breakMinutes);
+    changed = true;
+  }
+
+  if (timer.isRunning && timer.endsAt) {
+    const remainingMs = Math.max(0, timer.endsAt - now);
+    if (remainingMs !== timer.remainingMs) {
+      timer = { ...timer, remainingMs };
+      changed = true;
+    }
+  } else if (!timer.isRunning && timer.phase === "idle") {
+    const remainingMs = timer.focusMinutes * MS_IN_MINUTE;
+    if (timer.remainingMs !== remainingMs) {
+      timer = { ...timer, remainingMs };
+      changed = true;
+    }
+  }
+
+  return { timer, rpg, lastFocusSession, changed };
+}
+
 export function createAppStore() {
   return createStore<AppStoreState>()((set, get) => ({
     ...initialState,
 
     loadInitial: async () => {
       const tasks = await getTasks();
-      set({ tasks });
+      const storedTimer = loadTimerSnapshot();
+      set((state) => ({
+        tasks,
+        timer: storedTimer ?? state.timer,
+      }));
+      get().tickTimer(Date.now());
     },
 
     addTask: async (title, type) => {
@@ -326,53 +463,88 @@ export function createAppStore() {
     },
 
     startFocusSession: (focusMinutes, breakMinutes) => {
-      set((state) => ({
-        timer: {
-          ...state.timer,
-          focusMinutes: focusMinutes ?? state.timer.focusMinutes,
-          breakMinutes: breakMinutes ?? state.timer.breakMinutes,
+      const now = Date.now();
+      set((state) => {
+        const nextFocusMinutes = clampMinutes(focusMinutes ?? state.timer.focusMinutes, state.timer.focusMinutes);
+        const nextBreakMinutes = clampMinutes(breakMinutes ?? state.timer.breakMinutes, state.timer.breakMinutes);
+        const remainingMs = nextFocusMinutes * MS_IN_MINUTE;
+        const timer: TimerUiState = {
+          focusMinutes: nextFocusMinutes,
+          breakMinutes: nextBreakMinutes,
+          phase: "focus",
           isRunning: true,
-          startedAt: Date.now(),
-        },
-      }));
+          startedAt: now,
+          endsAt: now + remainingMs,
+          remainingMs,
+        };
+        saveTimerSnapshot(timer);
+        return { timer };
+      });
     },
 
-    completeFocusSession: () => {
+    tickTimer: (now) => {
+      const tickNow = now ?? Date.now();
       set((state) => {
-        const minutes = state.timer.focusMinutes;
-        const rpg = applyProgressWithBonus(state.rpg, {
-          type: "focus_completed",
-          minutes,
-        });
-        const lastFocusSession: FocusSession = {
-          id: makeId(),
-          focusMinutes: state.timer.focusMinutes,
-          breakMinutes: state.timer.breakMinutes,
-          startedAt: state.timer.startedAt ?? Date.now(),
-          endedAt: Date.now(),
-          status: "done",
-        };
-
+        const next = advanceTimerState(state, tickNow);
+        const hasRpgChange = next.rpg !== state.rpg;
+        const hasSessionChange = next.lastFocusSession !== state.lastFocusSession;
+        if (!next.changed && !hasRpgChange && !hasSessionChange) return {};
+        saveTimerSnapshot(next.timer);
         return {
-          rpg,
-          timer: {
-            ...state.timer,
-            isRunning: false,
-            startedAt: undefined,
-          },
-          lastFocusSession,
+          timer: next.timer,
+          rpg: next.rpg,
+          lastFocusSession: next.lastFocusSession,
         };
       });
     },
 
+    completeFocusSession: () => {
+      const now = Date.now();
+      set((state) => {
+        if (!state.timer.isRunning) return {};
+
+        if (state.timer.phase === "focus") {
+          const rpg = applyProgressWithBonus(state.rpg, {
+            type: "focus_completed",
+            minutes: state.timer.focusMinutes,
+          });
+          const lastFocusSession: FocusSession = {
+            id: makeId(),
+            focusMinutes: state.timer.focusMinutes,
+            breakMinutes: state.timer.breakMinutes,
+            startedAt: state.timer.startedAt ?? now - state.timer.focusMinutes * MS_IN_MINUTE,
+            endedAt: now,
+            status: "done",
+          };
+
+          const breakMs = state.timer.breakMinutes * MS_IN_MINUTE;
+          const timer =
+            breakMs > 0
+              ? {
+                  ...state.timer,
+                  phase: "break" as const,
+                  isRunning: true,
+                  startedAt: now,
+                  endsAt: now + breakMs,
+                  remainingMs: breakMs,
+                }
+              : createIdleTimer(state.timer.focusMinutes, state.timer.breakMinutes);
+          saveTimerSnapshot(timer);
+          return { rpg, timer, lastFocusSession };
+        }
+
+        const timer = createIdleTimer(state.timer.focusMinutes, state.timer.breakMinutes);
+        saveTimerSnapshot(timer);
+        return { timer };
+      });
+    },
+
     cancelFocusSession: () => {
-      set((state) => ({
-        timer: {
-          ...state.timer,
-          isRunning: false,
-          startedAt: undefined,
-        },
-      }));
+      set((state) => {
+        const timer = createIdleTimer(state.timer.focusMinutes, state.timer.breakMinutes);
+        saveTimerSnapshot(timer);
+        return { timer };
+      });
     },
 
     setNoiseType: (type) => {

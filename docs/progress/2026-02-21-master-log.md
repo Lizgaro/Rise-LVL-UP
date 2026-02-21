@@ -94,16 +94,32 @@
   - `b007dc7`
 - Updated issue handoff document with latest "реализовано/осталось":
   - `docs/issues/2026-02-21-mvp-progress-issue.md`
+- Implemented P0 batch #1 (timer core):
+  - real countdown state (`remainingMs`, `phase`, `endsAt`)
+  - auto transition `focus -> break -> idle`
+  - timer tick action and UI second-by-second updates
+  - timer snapshot persistence in local storage and restore on `loadInitial`
+- Added TDD coverage for timer flow and restore:
+  - `src/store/use-app-store.test.ts`
+- Updated timer UI with visible phase and countdown:
+  - `src/ui/FocusTimerCard.tsx`
+- Updated README timer description for current behavior.
+- Re-verified after changes:
+  - `npm run test:run` -> PASS
+  - `npm run build` -> PASS
 
 ## In Progress
 - Monitoring issue #1 for Jules response.
-- Preparing P0 implementation sequence from critical audit checklist (timer, real noise, full persistence, voice input).
+- Executing next P0 items from critical audit checklist:
+  - real noise engine
+  - full persistence
+  - voice input
 
 ## Remaining
 - Run full e2e in environment with required system libs (`libnspr4.so` currently missing).
 - Review Jules output on issue #1 and integrate follow-up changes if needed.
-- Execute P0 checklist from:
-  - `docs/research/2026-02-21-critical-audit-v2.md`
+- Execute remaining P0 checklist from:
+  - `docs/research/2026-02-21-critical-audit-v2.md` (except timer core batch #1)
 - Re-verify tests after each P0 increment:
   - `npm run test:run`
   - `npm run build`
