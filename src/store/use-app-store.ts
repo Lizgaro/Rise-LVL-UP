@@ -20,7 +20,28 @@ import type {
   TaskType,
   WeekPlan,
 } from "../domain/types";
-import { getTaskById, getTasks, saveTask } from "../storage/repository";
+import {
+  getAudioSettings,
+  getDayPlan,
+  getGoals,
+  getHabitLogs,
+  getHabits,
+  getRecoveryQuests,
+  getRPGProfile,
+  getTaskById,
+  getTasks,
+  getWeekPlan,
+  saveAudioSettings,
+  saveDayPlan,
+  saveFocusSession,
+  saveGoal,
+  saveHabit,
+  saveHabitLog,
+  saveRecoveryQuest,
+  saveRPGProfile,
+  saveTask,
+  saveWeekPlan,
+} from "../storage/repository";
 
 type TimerUiState = {
   focusMinutes: number;
@@ -49,17 +70,17 @@ export interface AppActions {
   addTask: (title: string, type: TaskType) => Promise<string>;
   toggleTaskDone: (id: string) => Promise<void>;
   setTaskScope: (id: string, scope: Task["planScope"]) => Promise<void>;
-  setDayPlan: (taskIds: string[]) => void;
-  setWeekPlan: (taskIds: string[]) => void;
-  addGoal: (title: string, targetCount: number) => string;
-  incrementGoalProgress: (goalId: string) => void;
-  addHabit: (title: string, mode: HabitMode) => string;
-  markHabitStatus: (habitId: string, status: HabitLogStatus, note?: string) => void;
+  setDayPlan: (taskIds: string[]) => Promise<void>;
+  setWeekPlan: (taskIds: string[]) => Promise<void>;
+  addGoal: (title: string, targetCount: number) => Promise<string>;
+  incrementGoalProgress: (goalId: string) => Promise<void>;
+  addHabit: (title: string, mode: HabitMode) => Promise<string>;
+  markHabitStatus: (habitId: string, status: HabitLogStatus, note?: string) => Promise<void>;
   startFocusSession: (focusMinutes?: number, breakMinutes?: number) => void;
-  completeFocusSession: () => void;
+  completeFocusSession: () => Promise<void>;
   cancelFocusSession: () => void;
-  setNoiseType: (type: NoiseType) => void;
-  setNoiseVolume: (volume: number) => void;
+  setNoiseType: (type: NoiseType) => Promise<void>;
+  setNoiseVolume: (volume: number) => Promise<void>;
   clearUiError: () => void;
 }
 
@@ -124,8 +145,14 @@ function applyProgressWithBonus(
   event:
     | { type: "task_done" | "day_priority_done" | "goal_step_done" | "habit_done" | "habit_skipped" | "habit_relapse" | "task_missed" }
     | { type: "focus_completed"; minutes: number },
+  quest?: RecoveryQuest,
 ): RPGProfile {
-  const next = applyEvent(profile, event);
+  let multiplier = 1.0;
+  if (quest && quest.status === "active") {
+    multiplier = quest.xpBonusMultiplier;
+  }
+
+  const next = applyEvent(profile, event, multiplier);
   return next;
 }
 
@@ -135,7 +162,33 @@ export function createAppStore() {
 
     loadInitial: async () => {
       const tasks = await getTasks();
-      set({ tasks });
+      const habits = await getHabits();
+      const habitLogs = await getHabitLogs();
+      const goals = await getGoals();
+      const rpg = await getRPGProfile();
+      const audio = await getAudioSettings();
+      const quests = await getRecoveryQuests();
+      const day = await getDayPlan(todayKey());
+      const week = await getWeekPlan(weekStartKey());
+
+      let activeQuest = quests.find((q) => q.status === "active");
+      if (activeQuest && Date.now() > activeQuest.expiresAt) {
+        activeQuest = { ...activeQuest, status: "expired" };
+        await saveRecoveryQuest(activeQuest);
+        activeQuest = undefined;
+      }
+
+      set((state) => ({
+        tasks,
+        habits,
+        habitLogs,
+        goals,
+        rpg: rpg ?? state.rpg,
+        noise: audio ?? state.noise,
+        recoveryQuest: activeQuest,
+        dayPlan: day ?? state.dayPlan,
+        weekPlan: week ?? state.weekPlan,
+      }));
     },
 
     addTask: async (title, type) => {
@@ -173,23 +226,37 @@ export function createAppStore() {
 
       await saveTask(nextTask);
 
+      const prevState = get();
+      let rpg = prevState.rpg;
+      let recoveryQuest = prevState.recoveryQuest;
+
+      if (isCompleting) {
+        rpg = applyProgressWithBonus(rpg, { type: "task_done" }, recoveryQuest);
+        if (prevState.dayPlan.priorityTaskIds.includes(id)) {
+          rpg = applyProgressWithBonus(rpg, { type: "day_priority_done" }, recoveryQuest);
+        }
+        if (nextTask.goalId) {
+          rpg = applyProgressWithBonus(rpg, { type: "goal_step_done" }, recoveryQuest);
+        }
+
+        if (recoveryQuest?.status === "active") {
+          recoveryQuest = { ...recoveryQuest, taskDone: true };
+          if (recoveryQuest.focusDone) {
+            recoveryQuest.status = "done";
+          }
+          await saveRecoveryQuest(recoveryQuest);
+        }
+      }
+
+      if (rpg !== prevState.rpg) {
+        await saveRPGProfile(rpg);
+      }
+
       set((prev) => {
         const tasks = prev.tasks.some((task) => task.id === id)
           ? prev.tasks.map((task) => (task.id === id ? nextTask : task))
           : [nextTask, ...prev.tasks];
-
-        let rpg = prev.rpg;
-        if (isCompleting) {
-          rpg = applyProgressWithBonus(rpg, { type: "task_done" });
-          if (prev.dayPlan.priorityTaskIds.includes(id)) {
-            rpg = applyProgressWithBonus(rpg, { type: "day_priority_done" });
-          }
-          if (nextTask.goalId) {
-            rpg = applyProgressWithBonus(rpg, { type: "goal_step_done" });
-          }
-        }
-
-        return { tasks, rpg };
+        return { tasks, rpg, recoveryQuest };
       });
     },
 
@@ -204,39 +271,42 @@ export function createAppStore() {
       }));
     },
 
-    setDayPlan: (taskIds) => {
+    setDayPlan: async (taskIds) => {
       try {
         const priorityTaskIds = setDayPriorities(taskIds);
-        set((state) => ({
-          dayPlan: {
-            ...state.dayPlan,
-            date: todayKey(),
-            priorityTaskIds,
-          },
+        const nextPlan: DayPlan = {
+          date: todayKey(),
+          priorityTaskIds,
+        };
+        await saveDayPlan(nextPlan);
+        set({
+          dayPlan: nextPlan,
           uiError: undefined,
-        }));
+        });
       } catch (error) {
         set({ uiError: (error as Error).message });
       }
     },
 
-    setWeekPlan: (taskIds) => {
+    setWeekPlan: async (taskIds) => {
       try {
         const priorityTaskIds = setWeekPriorities(taskIds);
-        set((state) => ({
-          weekPlan: {
-            ...state.weekPlan,
-            weekStartDate: weekStartKey(),
-            priorityTaskIds,
-          },
+        const nextPlan: WeekPlan = {
+          ...get().weekPlan,
+          weekStartDate: weekStartKey(),
+          priorityTaskIds,
+        };
+        await saveWeekPlan(nextPlan);
+        set({
+          weekPlan: nextPlan,
           uiError: undefined,
-        }));
+        });
       } catch (error) {
         set({ uiError: (error as Error).message });
       }
     },
 
-    addGoal: (title, targetCount) => {
+    addGoal: async (title, targetCount) => {
       const goal: Goal = {
         id: makeId(),
         title: title.trim() || "Новая цель",
@@ -246,36 +316,43 @@ export function createAppStore() {
         status: "active",
       };
 
-      set((state) => ({
-        goals: [goal, ...state.goals],
-        weekPlan: {
-          ...state.weekPlan,
-          goalIds: [...new Set([...state.weekPlan.goalIds, goal.id])],
-        },
+      await saveGoal(goal);
+      const state = get();
+      const nextWeekPlan = {
+        ...state.weekPlan,
+        goalIds: [...new Set([...state.weekPlan.goalIds, goal.id])],
+      };
+      await saveWeekPlan(nextWeekPlan);
+
+      set((prev) => ({
+        goals: [goal, ...prev.goals],
+        weekPlan: nextWeekPlan,
       }));
 
       return goal.id;
     },
 
-    incrementGoalProgress: (goalId) => {
-      set((state) => {
-        const goals: Goal[] = state.goals.map((goal) => {
-          if (goal.id !== goalId || goal.status !== "active") return goal;
-          const currentCount = Math.min(goal.targetCount, goal.currentCount + 1);
-          const status: Goal["status"] = currentCount >= goal.targetCount ? "done" : "active";
-          return {
-            ...goal,
-            currentCount,
-            status,
-          };
-        });
+    incrementGoalProgress: async (goalId) => {
+      const state = get();
+      const targetGoal = state.goals.find((g) => g.id === goalId);
+      if (!targetGoal || targetGoal.status !== "active") return;
 
-        const rpg = applyProgressWithBonus(state.rpg, { type: "goal_step_done" });
+      const currentCount = Math.min(targetGoal.targetCount, targetGoal.currentCount + 1);
+      const status: Goal["status"] = currentCount >= targetGoal.targetCount ? "done" : "active";
+      const nextGoal: Goal = { ...targetGoal, currentCount, status };
+
+      await saveGoal(nextGoal);
+
+      const rpg = applyProgressWithBonus(state.rpg, { type: "goal_step_done" });
+      await saveRPGProfile(rpg);
+
+      set((prev) => {
+        const goals = prev.goals.map((g) => (g.id === goalId ? nextGoal : g));
         return { goals, rpg };
       });
     },
 
-    addHabit: (title, mode) => {
+    addHabit: async (title, mode) => {
       const habit: Habit = {
         id: makeId(),
         title: title.trim() || "Новая привычка",
@@ -284,13 +361,14 @@ export function createAppStore() {
         active: true,
       };
 
+      await saveHabit(habit);
       set((state) => ({
         habits: [habit, ...state.habits],
       }));
       return habit.id;
     },
 
-    markHabitStatus: (habitId, status, note) => {
+    markHabitStatus: async (habitId, status, note) => {
       const log: HabitLog = {
         id: makeId(),
         habitId,
@@ -299,30 +377,36 @@ export function createAppStore() {
         note,
       };
 
-      set((state) => {
-        let rpg = state.rpg;
-        if (status === "done") rpg = applyProgressWithBonus(rpg, { type: "habit_done" });
-        if (status === "skipped") rpg = applyProgressWithBonus(rpg, { type: "habit_skipped" });
-        if (status === "relapse") rpg = applyProgressWithBonus(rpg, { type: "habit_relapse" });
+      await saveHabitLog(log);
 
-        let recoveryQuest = state.recoveryQuest;
-        if (status === "relapse") {
-          recoveryQuest = {
-            id: makeId(),
-            sourceEvent: "habit_relapse",
-            title: "Квест восстановления: 1 фокус-сессия + 1 маленькая задача",
-            xpBonusMultiplier: 1.5,
-            expiresAt: Date.now() + 24 * 60 * 60 * 1000,
-            status: "active",
-          };
-        }
+      const prevState = get();
+      let rpg = prevState.rpg;
+      if (status === "done") rpg = applyProgressWithBonus(rpg, { type: "habit_done" });
+      if (status === "skipped") rpg = applyProgressWithBonus(rpg, { type: "habit_skipped" });
+      if (status === "relapse") rpg = applyProgressWithBonus(rpg, { type: "habit_relapse" });
 
-        return {
-          habitLogs: [log, ...state.habitLogs],
-          rpg,
-          recoveryQuest,
+      let recoveryQuest = prevState.recoveryQuest;
+      if (status === "relapse") {
+        recoveryQuest = {
+          id: makeId(),
+          sourceEvent: "habit_relapse",
+          title: "Квест восстановления: 1 фокус-сессия + 1 маленькая задача",
+          xpBonusMultiplier: 1.5,
+          expiresAt: Date.now() + 24 * 60 * 60 * 1000,
+          status: "active",
         };
-      });
+        await saveRecoveryQuest(recoveryQuest);
+      }
+
+      if (rpg !== prevState.rpg) {
+        await saveRPGProfile(rpg);
+      }
+
+      set((state) => ({
+        habitLogs: [log, ...state.habitLogs],
+        rpg,
+        recoveryQuest,
+      }));
     },
 
     startFocusSession: (focusMinutes, breakMinutes) => {
@@ -337,31 +421,45 @@ export function createAppStore() {
       }));
     },
 
-    completeFocusSession: () => {
-      set((state) => {
-        const minutes = state.timer.focusMinutes;
-        const rpg = applyProgressWithBonus(state.rpg, {
-          type: "focus_completed",
-          minutes,
-        });
-        const lastFocusSession: FocusSession = {
-          id: makeId(),
-          focusMinutes: state.timer.focusMinutes,
-          breakMinutes: state.timer.breakMinutes,
-          startedAt: state.timer.startedAt ?? Date.now(),
-          endedAt: Date.now(),
-          status: "done",
-        };
+    completeFocusSession: async () => {
+      const state = get();
+      const minutes = state.timer.focusMinutes;
+      let recoveryQuest = state.recoveryQuest;
 
-        return {
-          rpg,
-          timer: {
-            ...state.timer,
-            isRunning: false,
-            startedAt: undefined,
-          },
-          lastFocusSession,
-        };
+      const rpg = applyProgressWithBonus(state.rpg, {
+        type: "focus_completed",
+        minutes,
+      }, recoveryQuest);
+
+      if (recoveryQuest?.status === "active") {
+        recoveryQuest = { ...recoveryQuest, focusDone: true };
+        if (recoveryQuest.taskDone) {
+          recoveryQuest.status = "done";
+        }
+        await saveRecoveryQuest(recoveryQuest);
+      }
+
+      const lastFocusSession: FocusSession = {
+        id: makeId(),
+        focusMinutes: state.timer.focusMinutes,
+        breakMinutes: state.timer.breakMinutes,
+        startedAt: state.timer.startedAt ?? Date.now(),
+        endedAt: Date.now(),
+        status: "done",
+      };
+
+      await saveFocusSession(lastFocusSession);
+      await saveRPGProfile(rpg);
+
+      set({
+        rpg,
+        recoveryQuest,
+        timer: {
+          ...state.timer,
+          isRunning: false,
+          startedAt: undefined,
+        },
+        lastFocusSession,
       });
     },
 
@@ -375,25 +473,25 @@ export function createAppStore() {
       }));
     },
 
-    setNoiseType: (type) => {
+    setNoiseType: async (type) => {
       noiseController.setType(type);
       if (type === "off") noiseController.stop();
-      set((state) => ({
-        noise: {
-          ...state.noise,
-          noiseType: type,
-        },
-      }));
+      const nextNoise = {
+        ...get().noise,
+        noiseType: type,
+      };
+      await saveAudioSettings(nextNoise);
+      set({ noise: nextNoise });
     },
 
-    setNoiseVolume: (volume) => {
+    setNoiseVolume: async (volume) => {
       noiseController.setVolume(volume);
-      set((state) => ({
-        noise: {
-          ...state.noise,
-          volume: noiseController.getState().volume,
-        },
-      }));
+      const nextNoise = {
+        ...get().noise,
+        volume: noiseController.getState().volume,
+      };
+      await saveAudioSettings(nextNoise);
+      set({ noise: nextNoise });
     },
 
     clearUiError: () => set({ uiError: undefined }),

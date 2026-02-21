@@ -19,7 +19,7 @@ export function AppShell() {
       </header>
 
       {uiError ? (
-        <div className="error">
+        <div className="error" data-testid="ui-error-message">
           <span>{uiError}</span>
           <button type="button" onClick={clearUiError}>
             Закрыть

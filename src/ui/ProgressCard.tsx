@@ -12,10 +12,22 @@ export function ProgressCard() {
         <span>Опыт (XP): {rpg.xpTotal}</span>
       </div>
       <progress data-testid="progress-bar-xp" max={1} value={Math.min(1, rpg.xpInLevel / 400)} />
-      {recoveryQuest ? (
-        <p className="muted">
-          Активен recovery-квест: <strong>{recoveryQuest.title}</strong>
-        </p>
+      {recoveryQuest && recoveryQuest.status === "active" ? (
+        <div className="recovery-status">
+          <p className="muted">
+            Активен recovery-квест: <strong>{recoveryQuest.title}</strong>
+          </p>
+          <ul className="list compact">
+            <li className={recoveryQuest.focusDone ? "done" : ""}>
+              {recoveryQuest.focusDone ? "✅" : "⏳"} 1 фокус-сессия
+            </li>
+            <li className={recoveryQuest.taskDone ? "done" : ""}>
+              {recoveryQuest.taskDone ? "✅" : "⏳"} 1 любая задача
+            </li>
+          </ul>
+        </div>
+      ) : recoveryQuest && recoveryQuest.status === "done" ? (
+        <p className="success">🎉 Recovery-квест выполнен! Бонус к XP получен.</p>
       ) : (
         <p className="muted">Recovery-квестов нет</p>
       )}

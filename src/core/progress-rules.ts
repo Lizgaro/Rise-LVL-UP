@@ -110,12 +110,19 @@ function applyNegativeXp(
   return next;
 }
 
-export function applyEvent(profile: RPGProfile, event: DomainEvent): RPGProfile {
+export function applyEvent(
+  profile: RPGProfile,
+  event: DomainEvent,
+  multiplier: number = 1.0,
+): RPGProfile {
   const safeProfile = normalizeProfile(profile);
   const now = getNow(event);
-  const delta = getEventXp(event);
+  let delta = getEventXp(event);
 
-  if (delta > 0) return applyPositiveXp(safeProfile, delta, now);
+  if (delta > 0) {
+    delta = Math.round(delta * multiplier);
+    return applyPositiveXp(safeProfile, delta, now);
+  }
   if (delta < 0) return applyNegativeXp(safeProfile, delta, event, now);
   return safeProfile;
 }
