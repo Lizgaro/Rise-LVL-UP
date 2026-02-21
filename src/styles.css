@@ -141,6 +141,11 @@ body {
   background: linear-gradient(180deg, #ffffff 0%, #f7fcf7 100%);
 }
 
+.focus-mode-card {
+  border-color: #d6d8f2;
+  background: linear-gradient(180deg, #ffffff 0%, #f6f6ff 100%);
+}
+
 .card h2,
 .card h3 {
   margin-top: 0;

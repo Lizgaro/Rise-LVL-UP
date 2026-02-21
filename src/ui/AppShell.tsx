@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { shouldUseFocusLayout } from "../core/focus-mode";
 import { FocusTimerCard } from "./FocusTimerCard";
 import { DayPulseCard } from "./DayPulseCard";
 import { GoalsCard } from "./GoalsCard";
@@ -14,6 +16,9 @@ import { useAppStore } from "../store/use-app-store";
 export function AppShell() {
   const uiError = useAppStore((state) => state.uiError);
   const clearUiError = useAppStore((state) => state.clearUiError);
+  const timerRunning = useAppStore((state) => state.timer.isRunning);
+  const [focusModeEnabled, setFocusModeEnabled] = useState(false);
+  const focusLayout = shouldUseFocusLayout(focusModeEnabled, timerRunning);
 
   return (
     <main className="page">
@@ -31,17 +36,46 @@ export function AppShell() {
         </div>
       ) : null}
 
-      <HealthBanner />
-      <DayPulseCard />
-      <TodayFocusCard />
-      <FocusTimerCard />
-      <TaskInboxCard />
-      <PlansCard />
-      <ReviewCard />
-      <GoalsCard />
-      <HabitsCard />
-      <ProgressCard />
-      <NoiseCard />
+      <section className="card focus-mode-card">
+        <h2>Режим фокуса</h2>
+        <label className="check">
+          <input
+            data-testid="focus-mode-toggle"
+            type="checkbox"
+            checked={focusModeEnabled}
+            onChange={(e) => setFocusModeEnabled(e.target.checked)}
+          />
+          Включать минимальный экран во время таймера
+        </label>
+        <p className="muted">
+          {focusLayout
+            ? "Активен минимальный режим: оставлены только ключевые блоки."
+            : "Полный режим интерфейса."}
+        </p>
+      </section>
+
+      {focusLayout ? (
+        <>
+          <DayPulseCard />
+          <TodayFocusCard />
+          <FocusTimerCard />
+          <NoiseCard />
+        </>
+      ) : (
+        <>
+          <HealthBanner />
+          <DayPulseCard />
+          <TodayFocusCard />
+          <FocusTimerCard />
+          <TaskInboxCard />
+          <PlansCard />
+          <ReviewCard />
+          <GoalsCard />
+          <HabitsCard />
+          <ProgressCard />
+          <NoiseCard />
+        </>
+      )}
     </main>
   );
 }
