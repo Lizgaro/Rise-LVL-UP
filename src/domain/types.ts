@@ -13,4 +13,17 @@ export interface RPGProfile {
   xpInLevel: number;
   lastLevelDownAt?: number;
   streakDays: number;
+  dailyXpDate?: string;
+  dailyXpEarned?: number;
+  recoveryBoostActionsRemaining?: number;
 }
+
+export type DomainEvent =
+  | { type: "task_done"; now?: number }
+  | { type: "day_priority_done"; now?: number }
+  | { type: "goal_step_done"; now?: number }
+  | { type: "focus_completed"; minutes: number; now?: number }
+  | { type: "habit_done"; now?: number }
+  | { type: "habit_skipped"; now?: number }
+  | { type: "habit_relapse"; now?: number }
+  | { type: "task_missed"; now?: number };
