@@ -131,6 +131,19 @@ Key outputs:
 Adoption status:
 - `Accepted as planning input` (используется для следующего брейншторм-блока и roadmap-приоритизации).
 
+### Task J - Refined Feature/Tool/Telegram Hypothesis Pass
+
+Instruction sent:
+`Контекст: личный productivity MVP (локальный web app, русский UI, задачи/планы/цели/привычки/pomodoro/RPG/voice/noise). Дай: 1) топ-15 полезных фич на следующий этап, 2) топ-10 инструментов/интеграций, 3) честную оценку гипотезы Telegram-бота как интерфейса (плюсы/минусы/риски/миграционная стратегия без реализации сейчас). Формат: короткие буллеты, практично.`
+
+Key outputs:
+- Повторно подтверждена полезность hybrid-модели Telegram (бот как канал ввода/напоминаний, web как основной UX).
+- Уточнены practical next-step фичи и инструменты для roadmap (command palette, шаблоны, heatmap, PWA и др.).
+- Отмечены ключевые риски: privacy и UX fragmentation при переносе основного сценария в чат.
+
+Adoption status:
+- `Accepted as hypothesis input` (используется в следующем брейншторме и приоритизации бэклога).
+
 ## Agent: GitHub @Jules
 
 Status:
