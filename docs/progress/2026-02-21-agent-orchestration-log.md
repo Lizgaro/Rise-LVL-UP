@@ -115,6 +115,22 @@ Key outputs:
 Adoption status:
 - `Partially accepted` (использованы как ориентир формулировок для текущего P1/P2 шага).
 
+### Task I - Next Features/Tools + Telegram Bot Hypothesis Review
+
+Instruction sent:
+`Контекст: личный productivity MVP (локальный web app, русский UI, задачи/планы/цели/привычки/pomodoro/RPG/voice/noise). Дай: 1) топ-15 полезных фич на следующий этап, 2) топ-10 инструментов/интеграций, 3) честную оценку гипотезы Telegram-бота как интерфейса (плюсы/минусы/риски/миграционная стратегия без реализации сейчас). Формат: короткие буллеты, практично.`
+
+Key outputs:
+- Сформирован список next-step фич (guided planning, command palette, quest lines, habit heatmap и т.д.).
+- Даны практичные инструменты/интеграции (Dexie, Framer Motion, date libs, PWA plugin, accessibility stack).
+- Для Telegram предложен hybrid-подход:
+  - бот как канал ввода/уведомлений
+  - web-приложение как основной интерфейс и source of truth
+  - риски privacy/UX-fragmentation явно отмечены.
+
+Adoption status:
+- `Accepted as planning input` (используется для следующего брейншторм-блока и roadmap-приоритизации).
+
 ## Agent: GitHub @Jules
 
 Status:

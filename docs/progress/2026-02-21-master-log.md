@@ -200,6 +200,25 @@
   - `npm run test:run -- src/ui/AppShell.test.tsx src/core/health-checks.test.ts src/voice/intent-preview.test.ts` -> PASS
   - `npm run test:run` -> PASS
   - `npm run build` -> PASS
+- Implemented P1/P2 batch #7 (guided planning + task filtering):
+  - Added day-plan suggestion helper:
+    - `Подобрать 3 из недели` action in `PlansCard`
+    - preserves current todo day priorities and fills from week priorities
+  - Added task list views in `TaskInboxCard`:
+    - active/all/day/week/done/missed
+    - quick visible count for current view
+  - Added new core modules with tests:
+    - `src/core/planning-suggestions.ts`
+    - `src/core/task-filters.ts`
+    - `src/core/planning-suggestions.test.ts`
+    - `src/core/task-filters.test.ts`
+  - Extended shell UI check for new labels.
+- Ran Gemini subagent for next-step feature/tools/Telegram hypothesis analysis:
+  - logged in `docs/progress/2026-02-21-agent-orchestration-log.md`
+- Re-verified after P1/P2 batch #7:
+  - `npm run test:run -- src/core/planning-suggestions.test.ts src/core/task-filters.test.ts src/ui/AppShell.test.tsx` -> PASS
+  - `npm run test:run` -> PASS
+  - `npm run build` -> PASS
 
 ## In Progress
 - Monitoring issue #1 for Jules response.

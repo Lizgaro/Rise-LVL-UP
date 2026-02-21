@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { suggestDayPrioritiesFromWeek } from "../core/planning-suggestions";
 import { useAppStore } from "../store/use-app-store";
 
 export function PlansCard() {
@@ -26,6 +27,22 @@ export function PlansCard() {
         <div>
           <h3>Сегодня</h3>
           <p className="muted">До 3 приоритетов</p>
+          <button
+            data-testid="suggest-day-priorities-btn"
+            type="button"
+            onClick={() =>
+              setDayPlan(
+                suggestDayPrioritiesFromWeek(
+                  tasks,
+                  weekPlan.priorityTaskIds,
+                  dayPlan.priorityTaskIds,
+                  3,
+                ),
+              )
+            }
+          >
+            Подобрать 3 из недели
+          </button>
           {selectable.map((task) => {
             const checked = dayPlan.priorityTaskIds.includes(task.id);
             return (
