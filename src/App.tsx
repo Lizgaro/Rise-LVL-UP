@@ -1,3 +1,11 @@
+import { useEffect } from "react";
+import { appStore } from "./store/use-app-store";
+import { AppShell } from "./ui/AppShell";
+
 export default function App() {
-  return <h1>Rise LVL UP</h1>;
+  useEffect(() => {
+    void appStore.getState().loadInitial();
+  }, []);
+
+  return <AppShell />;
 }

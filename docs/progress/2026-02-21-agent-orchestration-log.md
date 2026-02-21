@@ -47,6 +47,20 @@ Key outputs:
 Adoption status:
 - `Partially accepted` (structure is strong, but tool schemas and refusal policy will be normalized to our real app contracts).
 
+### Task D - Minimal Russian UI Sections and Stable E2E Selectors
+
+Instruction sent:
+`Ты UI-архитектор. Нужен минималистичный одностраничный интерфейс для productivity MVP на русском. Дай кратко: 1) список секций, 2) обязательные русские label'ы, 3) data-testid для e2e (по 1-2 на секцию), 4) 8 ключевых пользовательских сценариев. Формат: markdown, максимум 220 слов.`
+
+Key outputs:
+- Suggested compact one-screen sections.
+- Suggested Russian labels for progress/tasks/noise blocks.
+- Suggested `data-testid` naming for deterministic e2e tests.
+- Suggested core user scenarios for MVP.
+
+Adoption status:
+- `Partially accepted` (test-id naming and scenario set used as input for Task 8 UI and e2e coverage).
+
 ## Agent: GitHub @Jules
 
 Status:

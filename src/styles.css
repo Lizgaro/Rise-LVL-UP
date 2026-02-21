@@ -11,3 +11,105 @@
 body {
   margin: 0;
 }
+
+.page {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 24px;
+  display: grid;
+  gap: 16px;
+}
+
+.header h1 {
+  margin: 0 0 6px;
+}
+
+.card {
+  background: #ffffff;
+  border: 1px solid #e9e9e9;
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.card h2,
+.card h3 {
+  margin-top: 0;
+}
+
+.row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.row.compact {
+  gap: 6px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0;
+  display: grid;
+  gap: 8px;
+}
+
+.list.compact {
+  gap: 4px;
+}
+
+.list li {
+  border: 1px solid #efefef;
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.done {
+  opacity: 0.55;
+  text-decoration: line-through;
+}
+
+.check {
+  display: block;
+  margin: 4px 0;
+}
+
+.muted {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid #efb2b2;
+  background: #fff0f0;
+  color: #7c1b1b;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+@media (max-width: 700px) {
+  .page {
+    padding: 14px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

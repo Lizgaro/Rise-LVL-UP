@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
+import { renderToStaticMarkup } from "react-dom/server";
 import App from "./App";
 
 describe("App smoke", () => {
   it("renders app title in Russian", () => {
-    const element = App();
-    expect(String(element.props.children)).toContain("Rise LVL UP");
+    const html = renderToStaticMarkup(<App />);
+    expect(html).toContain("Rise LVL UP");
   });
 });
