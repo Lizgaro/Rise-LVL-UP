@@ -450,3 +450,29 @@
 
 ## Next Step
 - Start separate vNext planning iteration based on updated browser audit priorities and user prioritization.
+
+## Update (2026-02-21): Context Reset Baseline
+- User requested explicit reset/start-over point while preserving all completed tasks.
+- Added canonical reset tracker:
+  - `docs/progress/current-plan.md`
+- Recorded baseline state for restart:
+  - branch: `feat/mvp-core`
+  - head: `2d6442e`
+  - MVP core: complete
+  - active scope: vNext non-blocking improvements only
+- Updated discovery entry points:
+  - `README.md` now links to `docs/progress/current-plan.md`
+  - `docs/issues/2026-02-21-mvp-progress-issue.md` includes reset checkpoint
+
+## In Progress
+- Context reset completed; waiting for next prioritized task batch.
+
+## Remaining
+- vNext only (non-blocking):
+  - offline stress edge cases
+  - storage-protection edge cases
+  - update prompt microcopy tuning
+  - Telegram-bot hypothesis planning (without implementation)
+
+## Next Step
+- Begin new cycle from `docs/progress/current-plan.md` and execute top high-impact item first.

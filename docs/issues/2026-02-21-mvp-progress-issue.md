@@ -658,3 +658,21 @@
   - offline stress checks для длительных idle/restore сценариев
   - storage-protection edge-cases
   - cloud sync backup (без auth-overkill).
+
+---
+
+## Обновление (2026-02-21): Context Reset Baseline
+
+### Реализовано
+
+- По запросу пользователя зафиксирована единая reset-точка старта:
+  - `docs/progress/current-plan.md`
+- Обновлен мастер-лог и README ссылками на новый источник правды по плану.
+- Подтверждено текущее состояние ветки:
+  - `feat/mvp-core`
+  - `HEAD: 2d6442e`
+  - MVP-ядро закрыто, в работе только vNext-улучшения.
+
+### Осталось
+
+- Взять следующий high-impact пункт из `docs/progress/current-plan.md` и реализовывать батчами с полной верификацией после каждого шага.
