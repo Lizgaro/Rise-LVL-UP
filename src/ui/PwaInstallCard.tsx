@@ -1,4 +1,10 @@
 import { useEffect, useState } from "react";
+import {
+  loadInstallAnalytics,
+  recordInstallOutcome,
+  recordInstallPromptShown,
+  type InstallAnalytics,
+} from "../core/install-analytics";
 import { isStandaloneMode } from "../core/pwa-install";
 
 type InstallOutcome = "accepted" | "dismissed";
@@ -17,6 +23,7 @@ export function PwaInstallCard() {
   const [isStandalone, setIsStandalone] = useState(() => isStandaloneMode());
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | undefined>();
   const [wasDismissed, setWasDismissed] = useState(false);
+  const [analytics, setAnalytics] = useState<InstallAnalytics>(() => loadInstallAnalytics());
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -25,6 +32,7 @@ export function PwaInstallCard() {
       event.preventDefault();
       setDeferredPrompt(event as BeforeInstallPromptEvent);
       setWasDismissed(false);
+      setAnalytics(recordInstallPromptShown());
     };
 
     const onAppInstalled = () => {
@@ -57,10 +65,12 @@ export function PwaInstallCard() {
                 await deferredPrompt.prompt();
                 const choice = await deferredPrompt.userChoice;
                 if (choice.outcome === "accepted") {
+                  setAnalytics(recordInstallOutcome("accepted"));
                   setIsStandalone(true);
                   setDeferredPrompt(undefined);
                   return;
                 }
+                setAnalytics(recordInstallOutcome("dismissed"));
                 setWasDismissed(true);
               })();
             }}
@@ -72,6 +82,9 @@ export function PwaInstallCard() {
       ) : (
         <p className="muted">Если кнопки нет, открой меню браузера и выбери «Установить приложение».</p>
       )}
+      <p className="muted">
+        Показов: {analytics.promptShown} | Установок: {analytics.accepted} | Отложено: {analytics.dismissed}
+      </p>
     </section>
   );
 }

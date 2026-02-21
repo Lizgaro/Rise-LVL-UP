@@ -163,6 +163,11 @@ body {
   background: linear-gradient(180deg, #ffffff 0%, #f7f9ff 100%);
 }
 
+.pwa-update-card {
+  border-color: #f0d2ab;
+  background: linear-gradient(180deg, #fffef8 0%, #fff7ea 100%);
+}
+
 .card h2,
 .card h3 {
   margin-top: 0;

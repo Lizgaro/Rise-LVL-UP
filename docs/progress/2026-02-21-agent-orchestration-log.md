@@ -261,3 +261,17 @@ Key outputs:
 
 Adoption status:
 - `Partially accepted` (взяты приоритеты для next batch; backup/restore уже реализован ранее).
+
+### Task Q - PWA Update Prompt Microcopy/Behavior Pass
+
+Instruction sent:
+`Ты UX-практик для PWA. Контекст: у нас есть карточка обновления с кнопкой 'Обновить сейчас' и офлайн-уведомление. Дай 5 коротких рекомендаций для microcopy/поведения update prompt без раздражения пользователя. Только practical bullets.`
+
+Key outputs:
+- Рекомендована non-blocking подача update prompt (не модалка, а встраиваемая карточка/снэкбар).
+- Подтверждено, что копирайт должен быть action-first и честно объяснять перезагрузку.
+- Рекомендовано не предлагать update в критичных рабочих контекстах и в офлайне.
+- Подчеркнута важность сохранения точки возврата при применении обновления.
+
+Adoption status:
+- `Partially accepted` (внедрены офлайн-guard и non-blocking card flow; copy tuning отложен в vNext).

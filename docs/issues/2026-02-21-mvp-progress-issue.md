@@ -603,3 +603,31 @@
   - PWA update prompt UX
   - аналитика установки (локально)
   - расширение browser edge-cases coverage.
+
+---
+
+## Обновление (2026-02-22): P1/P2 batch #17 - PWA Update UX + Local Install Analytics
+
+### Реализовано
+
+- Добавлен полноценный UX обновления PWA без авто-рывка интерфейса:
+  - `src/core/pwa-status.ts` + `src/core/pwa-status.test.ts`
+  - `src/pwa.ts` с подпиской на `need_refresh/offline_ready` и явным `applyPwaUpdate`
+  - карточка `src/ui/PwaUpdateCard.tsx` (кнопка `Обновить сейчас`)
+  - защита от обновления в офлайне (кнопка disabled + подсказка)
+- Добавлена локальная аналитика установки (без внешнего трекинга):
+  - `src/core/install-analytics.ts` + `src/core/install-analytics.test.ts`
+  - интеграция в `src/ui/PwaInstallCard.tsx`
+  - счетчики: `Показов`, `Установок`, `Отложено`
+- Полный regression после внедрения:
+  - `npm run e2e` PASS (6/6)
+  - `npm run test:run` PASS (63/63)
+  - `npm run build` PASS
+
+### Осталось
+
+- Блокирующих задач по MVP-ядру нет.
+- vNext:
+  - copy-tuning update prompt
+  - offline stress checks
+  - расширение browser edge-case coverage.

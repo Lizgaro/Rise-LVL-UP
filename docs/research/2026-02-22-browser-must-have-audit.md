@@ -41,6 +41,8 @@
    - добавлена карточка `Быстрый старт (1 минута)` с фиксацией завершения в local storage.
 7. PWA + mobile-first foundation:
    - добавлены manifest/service worker/install flow и mobile touch-target улучшения.
+8. PWA update + install telemetry:
+   - добавлен update card (`Обновить сейчас` + offline guard) и локальные счетчики установки.
 
 ## Практики аналогичных продуктов (что взять, что избегать)
 - Todoist: быстрый capture + минимальный шум в главном экране.

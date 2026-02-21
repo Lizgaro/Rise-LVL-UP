@@ -7,6 +7,7 @@ describe("Russian UI", () => {
     const html = renderToStaticMarkup(<App />);
     expect(html).toContain("Быстрый старт (1 минута)");
     expect(html).toContain("Установить как приложение");
+    expect(html).toContain("Показов:");
     expect(html).toContain("Рабочий экран");
     expect(html).toContain("Фокус");
     expect(html).toContain("Планирование");

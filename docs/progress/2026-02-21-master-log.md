@@ -385,14 +385,43 @@
 - Added housekeeping:
   - `.gitignore` updated with `dev-dist/`.
 
+## Update (2026-02-22): P1/P2 batch #17 - PWA Update UX + Local Install Analytics
+- Implemented SW update experience without disruptive auto-refresh:
+  - Added PWA status state model:
+    - `src/core/pwa-status.ts`
+    - `src/core/pwa-status.test.ts`
+  - Refactored `src/pwa.ts` to:
+    - publish PWA status events (`need_refresh` / `offline_ready`)
+    - expose explicit update action (`applyPwaUpdate`)
+    - use lazy import of `virtual:pwa-register` (test/runtime-safe)
+  - Added update UI card:
+    - `src/ui/PwaUpdateCard.tsx`
+    - integrated in `src/ui/AppShell.tsx`
+  - Added offline guard for update action:
+    - update button disabled while offline with explicit hint.
+- Implemented local install analytics (no external tracking):
+  - Added module + tests:
+    - `src/core/install-analytics.ts`
+    - `src/core/install-analytics.test.ts`
+  - Integrated counters in `src/ui/PwaInstallCard.tsx`:
+    - prompt shown
+    - accepted installs
+    - dismissed installs
+- Re-verified full quality gate:
+  - `npm run e2e` (Windows PowerShell) -> PASS (6/6)
+  - `npm run test:run` -> PASS (63/63)
+  - `npm run build` -> PASS
+- Ran external PWA microcopy/behavior pass:
+  - recommendations logged in `docs/progress/2026-02-21-agent-orchestration-log.md`
+
 ## In Progress
 - No blocking implementation tasks for MVP core.
 
 ## Remaining
 - MVP core scope: completed.
 - Optional vNext backlog (non-blocking):
-  - PWA install UX analytics (accept/dismiss tracking, local only).
-  - SW update prompt UX (`new version available` flow).
+  - PWA update card A/B copy tuning (local, no remote analytics).
+  - Offline-first stress checks for long idle sessions.
   - Browser coverage hardening for storage-protection UX edge cases.
   - Optional cloud-synced backup workflow (without auth complexity).
   - Onboarding personalization by user scenario (work/study/fitness).

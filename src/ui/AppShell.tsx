@@ -10,6 +10,7 @@ import { NoiseCard } from "./NoiseCard";
 import { PlansCard } from "./PlansCard";
 import { ProgressCard } from "./ProgressCard";
 import { PwaInstallCard } from "./PwaInstallCard";
+import { PwaUpdateCard } from "./PwaUpdateCard";
 import { ReviewCard } from "./ReviewCard";
 import { TaskInboxCard } from "./TaskInboxCard";
 import { TodayFocusCard } from "./TodayFocusCard";
@@ -55,6 +56,7 @@ export function AppShell() {
       ) : null}
 
       <PwaInstallCard />
+      <PwaUpdateCard />
 
       {uiError ? (
         <div className="error">
