@@ -1,5 +1,6 @@
 import "fake-indexeddb/auto";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { db } from "../storage/db";
 import { clearAllData } from "../storage/repository";
 import { createAppStore } from "./use-app-store";
 
@@ -29,6 +30,8 @@ describe("AppStore", () => {
   afterEach(async () => {
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
+    await clearAllData();
+    await new Promise((resolve) => setTimeout(resolve, 0));
     await clearAllData();
   });
 
@@ -164,5 +167,57 @@ describe("AppStore", () => {
     expect(events.length).toBeGreaterThan(0);
     expect(events[0].delta).not.toBe(0);
     expect(events.some((event) => event.label.includes("Задача"))).toBe(true);
+  });
+
+  it("completes recovery quest after focus session and task completion", async () => {
+    const store = createAppStore();
+    const habitId = store.getState().addHabit("Без соцсетей", "quit");
+    store.getState().markHabitStatus(habitId, "relapse", "Срыв");
+    expect(store.getState().recoveryQuest?.status).toBe("active");
+
+    const taskId = await store.getState().addTask("Маленькая задача", "task");
+    await store.getState().toggleTaskDone(taskId);
+    store.getState().startFocusSession(10, 1);
+    store.getState().completeFocusSession();
+
+    const quest = store.getState().recoveryQuest;
+    expect(quest?.status).toBe("done");
+    expect((quest?.completedTasks ?? 0) >= 1).toBe(true);
+    expect((quest?.completedFocusSessions ?? 0) >= 1).toBe(true);
+  });
+
+  it("expires recovery quest on load if ttl is passed", async () => {
+    await clearAllData();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await clearAllData();
+
+    await new Promise((resolve) => setTimeout(resolve, 20));
+
+    const jan1 = new Date("2026-01-01T08:00:00.000Z").getTime();
+    const jan2 = new Date("2026-01-02T08:00:00.000Z").getTime();
+    const jan3 = new Date("2026-01-03T08:00:00.000Z").getTime();
+    const nowSpy = vi.spyOn(Date, "now").mockReturnValue(jan1);
+
+    await db.recoveryQuests.clear();
+    await db.recoveryQuests.put({
+      id: "rq-expire-test",
+      sourceEvent: "habit_relapse",
+      title: "Квест восстановления",
+      xpBonusMultiplier: 1.5,
+      requiredTasks: 1,
+      completedTasks: 0,
+      requiredFocusSessions: 1,
+      completedFocusSessions: 0,
+      expiresAt: jan2,
+      status: "active",
+    });
+
+    nowSpy.mockReturnValue(jan3);
+    expect(Date.now()).toBe(jan3);
+    const restored = createAppStore();
+    await restored.getState().loadInitial();
+
+    expect(restored.getState().recoveryQuest?.status).toBe("expired");
+    nowSpy.mockRestore();
   });
 });

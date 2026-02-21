@@ -84,6 +84,10 @@ export interface RecoveryQuest {
   sourceEvent: string;
   title: string;
   xpBonusMultiplier: number;
+  requiredTasks?: number;
+  completedTasks?: number;
+  requiredFocusSessions?: number;
+  completedFocusSessions?: number;
   expiresAt: number;
   status: RecoveryStatus;
 }

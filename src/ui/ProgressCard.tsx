@@ -88,10 +88,17 @@ export function ProgressCard() {
         Цели: {weeklySummary.goalsDone}/{weeklySummary.goalsTotal} | Привычки done: {weeklySummary.habitDoneLogs}
         {` | Срывы: ${weeklySummary.relapses}`}
       </p>
-      {recoveryQuest ? (
+      {recoveryQuest?.status === "active" ? (
         <p className="muted">
           Активен recovery-квест: <strong>{recoveryQuest.title}</strong>
+          {` (${recoveryQuest.completedFocusSessions ?? 0}/${recoveryQuest.requiredFocusSessions ?? 1} фокус, ${
+            recoveryQuest.completedTasks ?? 0
+          }/${recoveryQuest.requiredTasks ?? 1} задачи)`}
         </p>
+      ) : recoveryQuest?.status === "done" ? (
+        <p className="muted">Recovery-квест выполнен</p>
+      ) : recoveryQuest?.status === "expired" ? (
+        <p className="muted">Recovery-квест истек</p>
       ) : (
         <p className="muted">Recovery-квестов нет</p>
       )}

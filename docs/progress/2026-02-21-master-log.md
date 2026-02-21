@@ -157,6 +157,15 @@
   - `src/core/analytics.test.ts`
   - `src/ui/AppShell.test.tsx` validates streak/weekly headings.
 - Updated README with streak/weekly summary status.
+- Implemented P1/P2 batch #4 (recovery quest lifecycle):
+  - Added recovery quest progress fields (tasks/focus counters and requirements).
+  - Added auto-completion logic when required task + focus session are done.
+  - Added auto-expire logic on load when quest TTL is passed.
+  - Updated progress UI to show active quest counters and done/expired states.
+  - Fixed recovery quest persistence to keep a single latest quest snapshot.
+- Added TDD coverage:
+  - `src/store/use-app-store.test.ts` includes completion and expiry scenarios.
+- Updated README with recovery lifecycle status.
 - Re-verified after changes:
   - `npm run test:run` -> PASS
   - `npm run build` -> PASS
@@ -177,4 +186,4 @@
 - (Optional) Post direct GitHub issue comment update when `gh` is available in this shell.
 
 ## Next Step
-- Continue P1/P2 polish (recovery quest lifecycle + deeper visual feedback).
+- Continue P1/P2 polish (visual feedback, animation, and final UX refinement).

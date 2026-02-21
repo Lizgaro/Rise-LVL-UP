@@ -73,6 +73,7 @@ export async function saveRpgProfile(rpg: RPGProfile): Promise<void> {
 
 export async function saveRecoveryQuest(recoveryQuest?: RecoveryQuest): Promise<void> {
   if (recoveryQuest) {
+    await db.recoveryQuests.clear();
     await db.recoveryQuests.put(recoveryQuest);
     return;
   }

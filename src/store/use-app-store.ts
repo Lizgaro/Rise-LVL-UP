@@ -278,19 +278,79 @@ function applyProgressEvents(
   return { rpg, xpEvents };
 }
 
+type RecoveryProgressEvent = "task_done" | "focus_completed";
+
+function normalizeRecoveryQuest(quest: RecoveryQuest): RecoveryQuest {
+  return {
+    ...quest,
+    requiredTasks: quest.requiredTasks ?? 1,
+    completedTasks: quest.completedTasks ?? 0,
+    requiredFocusSessions: quest.requiredFocusSessions ?? 1,
+    completedFocusSessions: quest.completedFocusSessions ?? 0,
+  };
+}
+
+function advanceRecoveryQuest(
+  quest: RecoveryQuest | undefined,
+  event: RecoveryProgressEvent,
+  now: number,
+): RecoveryQuest | undefined {
+  if (!quest) return quest;
+  if (quest.status !== "active") return quest;
+
+  const normalized = normalizeRecoveryQuest(quest);
+  const hasExpired = now > normalized.expiresAt;
+  if (hasExpired) {
+    return { ...normalized, status: "expired" };
+  }
+
+  const completedTasks =
+    event === "task_done"
+      ? Math.min(normalized.requiredTasks ?? 1, (normalized.completedTasks ?? 0) + 1)
+      : normalized.completedTasks ?? 0;
+
+  const completedFocusSessions =
+    event === "focus_completed"
+      ? Math.min(normalized.requiredFocusSessions ?? 1, (normalized.completedFocusSessions ?? 0) + 1)
+      : normalized.completedFocusSessions ?? 0;
+
+  const isDone =
+    completedTasks >= (normalized.requiredTasks ?? 1) &&
+    completedFocusSessions >= (normalized.requiredFocusSessions ?? 1);
+
+  return {
+    ...normalized,
+    completedTasks,
+    completedFocusSessions,
+    status: isDone ? "done" : "active",
+  };
+}
+
+function expireRecoveryQuest(quest: RecoveryQuest | undefined, now: number): RecoveryQuest | undefined {
+  if (!quest) return quest;
+  if (quest.status !== "active") return normalizeRecoveryQuest(quest);
+  if (now <= quest.expiresAt) return normalizeRecoveryQuest(quest);
+  return {
+    ...normalizeRecoveryQuest(quest),
+    status: "expired",
+  };
+}
+
 function advanceTimerState(
-  state: Pick<AppStoreState, "timer" | "rpg" | "lastFocusSession">,
+  state: Pick<AppStoreState, "timer" | "rpg" | "lastFocusSession" | "recoveryQuest">,
   now: number,
 ): {
   timer: TimerUiState;
   rpg: RPGProfile;
   xpEvents: XpEvent[];
+  recoveryQuest?: RecoveryQuest;
   lastFocusSession?: FocusSession;
   changed: boolean;
 } {
   let timer = state.timer;
   let rpg = state.rpg;
   let xpEvents: XpEvent[] = [];
+  let recoveryQuest = state.recoveryQuest;
   let lastFocusSession = state.lastFocusSession;
   let changed = false;
 
@@ -300,6 +360,7 @@ function advanceTimerState(
       const progress = applyProgressEvents(rpg, [{ type: "focus_completed", minutes: timer.focusMinutes }], endedAt);
       rpg = progress.rpg;
       xpEvents = mergeXpEvents(xpEvents, progress.xpEvents);
+      recoveryQuest = advanceRecoveryQuest(recoveryQuest, "focus_completed", endedAt);
       lastFocusSession = {
         id: makeId(),
         focusMinutes: timer.focusMinutes,
@@ -344,7 +405,7 @@ function advanceTimerState(
     }
   }
 
-  return { timer, rpg, xpEvents, lastFocusSession, changed };
+  return { timer, rpg, xpEvents, recoveryQuest, lastFocusSession, changed };
 }
 
 export function createAppStore() {
@@ -359,6 +420,8 @@ export function createAppStore() {
     loadInitial: async () => {
       const snapshot = await loadPersistedSnapshot();
       const storedTimer = loadTimerSnapshot();
+      const now = Date.now();
+      const nextRecoveryQuest = expireRecoveryQuest(snapshot.recoveryQuest, now);
       set((state) => ({
         tasks: snapshot.tasks,
         goals: snapshot.goals,
@@ -367,7 +430,7 @@ export function createAppStore() {
         dayPlan: snapshot.dayPlan ?? state.dayPlan,
         weekPlan: snapshot.weekPlan ?? state.weekPlan,
         rpg: snapshot.rpg ?? state.rpg,
-        recoveryQuest: snapshot.recoveryQuest,
+        recoveryQuest: nextRecoveryQuest,
         noise: snapshot.audioSettings ?? state.noise,
         lastFocusSession: snapshot.lastFocusSession ?? state.lastFocusSession,
         timer: storedTimer ?? state.timer,
@@ -380,8 +443,20 @@ export function createAppStore() {
         if (persistedNoise.noiseType === "off") noiseController.stop();
       }
 
-      await get().applyMissedTasks(Date.now());
-      get().tickTimer(Date.now());
+      const hydratedQuest = get().recoveryQuest;
+      const enforcedQuest = expireRecoveryQuest(hydratedQuest, now);
+      if (enforcedQuest?.status !== hydratedQuest?.status) {
+        set({ recoveryQuest: enforcedQuest });
+      }
+
+      if (enforcedQuest?.status !== snapshot.recoveryQuest?.status) {
+        enqueuePersistence(async () => {
+          await saveRecoveryQuest(enforcedQuest);
+        });
+      }
+
+      await get().applyMissedTasks(now);
+      get().tickTimer(now);
     },
 
     addTask: async (title, type) => {
@@ -437,12 +512,16 @@ export function createAppStore() {
         const progress = applyProgressEvents(prev.rpg, progressEvents);
         const rpg = progress.rpg;
         const xpEvents = mergeXpEvents(prev.xpEvents, progress.xpEvents);
+        const recoveryQuest = isCompleting
+          ? advanceRecoveryQuest(prev.recoveryQuest, "task_done", Date.now())
+          : prev.recoveryQuest;
 
         enqueuePersistence(async () => {
           await saveRpgProfile(rpg);
+          await saveRecoveryQuest(recoveryQuest);
         });
 
-        return { tasks, rpg, xpEvents };
+        return { tasks, rpg, xpEvents, recoveryQuest };
       });
     },
 
@@ -591,6 +670,10 @@ export function createAppStore() {
             sourceEvent: "habit_relapse",
             title: "Квест восстановления: 1 фокус-сессия + 1 маленькая задача",
             xpBonusMultiplier: 1.5,
+            requiredTasks: 1,
+            completedTasks: 0,
+            requiredFocusSessions: 1,
+            completedFocusSessions: 0,
             expiresAt: Date.now() + 24 * 60 * 60 * 1000,
             status: "active",
           };
@@ -680,7 +763,8 @@ export function createAppStore() {
         const hasRpgChange = next.rpg !== state.rpg;
         const hasXpEvents = next.xpEvents.length > 0;
         const hasSessionChange = next.lastFocusSession !== state.lastFocusSession;
-        if (!next.changed && !hasRpgChange && !hasSessionChange && !hasXpEvents) return {};
+        const hasRecoveryChange = next.recoveryQuest !== state.recoveryQuest;
+        if (!next.changed && !hasRpgChange && !hasSessionChange && !hasXpEvents && !hasRecoveryChange) return {};
         saveTimerSnapshot(next.timer);
         enqueuePersistence(async () => {
           if (hasRpgChange) {
@@ -689,11 +773,15 @@ export function createAppStore() {
           if (hasSessionChange && next.lastFocusSession) {
             await saveFocusSession(next.lastFocusSession);
           }
+          if (hasRecoveryChange) {
+            await saveRecoveryQuest(next.recoveryQuest);
+          }
         });
         return {
           timer: next.timer,
           rpg: next.rpg,
           xpEvents: mergeXpEvents(state.xpEvents, next.xpEvents),
+          recoveryQuest: next.recoveryQuest,
           lastFocusSession: next.lastFocusSession,
         };
       });
@@ -713,6 +801,7 @@ export function createAppStore() {
           ]);
           const rpg = progress.rpg;
           const xpEvents = mergeXpEvents(state.xpEvents, progress.xpEvents);
+          const recoveryQuest = advanceRecoveryQuest(state.recoveryQuest, "focus_completed", now);
           const lastFocusSession: FocusSession = {
             id: makeId(),
             focusMinutes: state.timer.focusMinutes,
@@ -738,8 +827,9 @@ export function createAppStore() {
           enqueuePersistence(async () => {
             await saveRpgProfile(rpg);
             await saveFocusSession(lastFocusSession);
+            await saveRecoveryQuest(recoveryQuest);
           });
-          return { rpg, xpEvents, timer, lastFocusSession };
+          return { rpg, xpEvents, recoveryQuest, timer, lastFocusSession };
         }
 
         const timer = createIdleTimer(state.timer.focusMinutes, state.timer.breakMinutes);
