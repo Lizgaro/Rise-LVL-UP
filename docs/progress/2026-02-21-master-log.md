@@ -55,15 +55,32 @@
   - `docs/plans/2026-02-21-rise-lvl-up-design.md`
 - Created detailed TDD implementation plan:
   - `docs/plans/2026-02-21-rise-lvl-up-implementation.md`
+- Created isolated worktree and feature branch:
+  - `.worktrees/mvp-core`
+  - `feat/mvp-core`
+- Implemented Task 1 (project bootstrap + smoke test).
+- Implemented Task 2 (domain constants/types).
+- Implemented Task 3 (progress rules engine).
+- Implemented Task 4 (planning rules).
+- Implemented Task 5 (Dexie persistence for tasks).
+- Implemented Task 6 (integrated Zustand app store).
+- Implemented Task 7 (noise engine with safe fallback).
+- Implemented Task 8 (single-screen Russian UI).
+- Implemented Task 9 (core e2e scenario specs).
+- Implemented Task 10 docs updates:
+  - `README.md`
+  - `docs/issues/2026-02-21-mvp-progress-issue.md`
+- Verified unit tests and production build are passing.
+- Verified e2e currently blocked in this environment by missing runtime library:
+  - Chromium launch error: `libnspr4.so` not found
 
 ## In Progress
-- Final design/plan validation before implementation start.
+- Final verification and publishing (issue + push).
 
 ## Remaining
-- Implement MVP in tasks, verify in browser/tests.
-- Update README with full setup + roadmap.
-- Create GitHub issue with "implemented / remaining".
-- Commit and push to repository.
+- Run full e2e in environment with required system libs (`libnspr4.so` currently missing).
+- Publish issue in GitHub and optionally trigger `jules` label after auth.
+- Push feature branch to remote repository.
 
 ## Next Step
-- Validate Section 4 + implementation plan with user and choose execution mode.
+- Final git status check, create release summary, push branch and prepare issue publish command.
