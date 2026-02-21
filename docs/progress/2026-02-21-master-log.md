@@ -73,14 +73,18 @@
 - Verified unit tests and production build are passing.
 - Verified e2e currently blocked in this environment by missing runtime library:
   - Chromium launch error: `libnspr4.so` not found
+- Completed GitHub auth via `gh`.
+- Pushed branch to remote:
+  - `origin/feat/mvp-core`
+- Created GitHub issue and triggered Jules label:
+  - `https://github.com/Lizgaro/Rise-LVL-UP/issues/1`
 
 ## In Progress
-- Final verification and publishing (issue + push).
+- Monitoring issue #1 for Jules response.
 
 ## Remaining
 - Run full e2e in environment with required system libs (`libnspr4.so` currently missing).
-- Publish issue in GitHub and optionally trigger `jules` label after auth.
-- Push feature branch to remote repository.
+- Review Jules output on issue #1 and integrate follow-up changes if needed.
 
 ## Next Step
-- Final git status check, create release summary, push branch and prepare issue publish command.
+- Share release summary with user and decide whether to open PR from `feat/mvp-core`.
