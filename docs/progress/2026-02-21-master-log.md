@@ -149,6 +149,14 @@
   - `src/store/use-app-store.test.ts` validates XP events are recorded.
   - `src/ui/AppShell.test.tsx` validates new progress section headings.
 - Updated README with progress-feed status.
+- Implemented P1 batch #3 (streaks + weekly summary):
+  - Added analytics core module for habit streaks and weekly summary metrics.
+  - Added `Стрики привычек` and `Итоги недели` blocks in `ProgressCard`.
+  - Extended UI hierarchy with clearer weekly/daily feedback loop.
+- Added TDD coverage:
+  - `src/core/analytics.test.ts`
+  - `src/ui/AppShell.test.tsx` validates streak/weekly headings.
+- Updated README with streak/weekly summary status.
 - Re-verified after changes:
   - `npm run test:run` -> PASS
   - `npm run build` -> PASS
@@ -169,4 +177,4 @@
 - (Optional) Post direct GitHub issue comment update when `gh` is available in this shell.
 
 ## Next Step
-- Continue P1 UX polish (streak visibility + clearer weekly summary).
+- Continue P1/P2 polish (recovery quest lifecycle + deeper visual feedback).
