@@ -85,6 +85,7 @@ export interface AppActions {
   markHabitStatus: (habitId: string, status: HabitLogStatus, note?: string) => void;
   startFocusSession: (focusMinutes?: number, breakMinutes?: number) => void;
   applyMissedTasks: (now?: number) => Promise<void>;
+  closeDayPlan: () => Promise<void>;
   tickTimer: (now?: number) => void;
   completeFocusSession: () => void;
   cancelFocusSession: () => void;
@@ -733,6 +734,61 @@ export function createAppStore() {
       set({ tasks: nextTasks, rpg, xpEvents });
       enqueuePersistence(async () => {
         await saveRpgProfile(rpg);
+      });
+    },
+
+    closeDayPlan: async () => {
+      const state = get();
+      const dayIds = new Set(state.dayPlan.priorityTaskIds);
+      const clearedDayPlan: DayPlan = {
+        ...state.dayPlan,
+        date: todayKey(),
+        priorityTaskIds: [],
+      };
+
+      if (dayIds.size === 0) {
+        set({ dayPlan: clearedDayPlan });
+        enqueuePersistence(async () => {
+          await saveDayPlan(clearedDayPlan);
+        });
+        return;
+      }
+
+      const missedTasks: Task[] = [];
+      const nextTasks = state.tasks.map((task) => {
+        if (!dayIds.has(task.id)) return task;
+        if (task.status !== "todo") return task;
+        const missedTask: Task = { ...task, status: "missed" };
+        missedTasks.push(missedTask);
+        return missedTask;
+      });
+
+      if (missedTasks.length === 0) {
+        set({ dayPlan: clearedDayPlan });
+        enqueuePersistence(async () => {
+          await saveDayPlan(clearedDayPlan);
+        });
+        return;
+      }
+
+      await Promise.all(missedTasks.map((task) => saveTask(task)));
+      const progress = applyProgressEvents(
+        state.rpg,
+        missedTasks.map(() => ({ type: "task_missed" as const })),
+      );
+      const rpg = progress.rpg;
+      const xpEvents = mergeXpEvents(state.xpEvents, progress.xpEvents);
+
+      set({
+        tasks: nextTasks,
+        dayPlan: clearedDayPlan,
+        rpg,
+        xpEvents,
+      });
+
+      enqueuePersistence(async () => {
+        await saveRpgProfile(rpg);
+        await saveDayPlan(clearedDayPlan);
       });
     },
 

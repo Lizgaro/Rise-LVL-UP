@@ -219,6 +219,23 @@
   - `npm run test:run -- src/core/planning-suggestions.test.ts src/core/task-filters.test.ts src/ui/AppShell.test.tsx` -> PASS
   - `npm run test:run` -> PASS
   - `npm run build` -> PASS
+- Implemented P1/P2 batch #8 (end-of-day review loop):
+  - Added `ReviewCard` with:
+    - end-of-day checklist
+    - action `Перенести остаток в неделю`
+    - weekly reflection hints
+  - Added safe store action `closeDayPlan`:
+    - marks only current day `todo` priorities as `missed`
+    - applies RPG penalties and XP-event logging
+    - clears day plan without touching weekly priorities
+  - Added supporting modules and tests:
+    - `src/core/review-insights.ts` + `src/core/review-insights.test.ts`
+    - `src/store/use-app-store.test.ts` extended with `closeDayPlan` scenario
+  - Integrated review block into app flow (`AppShell`).
+- Re-verified after P1/P2 batch #8:
+  - `npm run test:run -- src/core/review-insights.test.ts src/store/use-app-store.test.ts src/ui/AppShell.test.tsx` -> PASS
+  - `npm run test:run` -> PASS
+  - `npm run build` -> PASS
 
 ## In Progress
 - Monitoring issue #1 for Jules response.

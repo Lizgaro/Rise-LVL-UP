@@ -136,6 +136,11 @@ body {
   margin: 4px 0 0;
 }
 
+.review-card {
+  border-color: #d7e3d8;
+  background: linear-gradient(180deg, #ffffff 0%, #f7fcf7 100%);
+}
+
 .card h2,
 .card h3 {
   margin-top: 0;

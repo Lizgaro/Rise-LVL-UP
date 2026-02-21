@@ -6,6 +6,7 @@ import { HealthBanner } from "./HealthBanner";
 import { NoiseCard } from "./NoiseCard";
 import { PlansCard } from "./PlansCard";
 import { ProgressCard } from "./ProgressCard";
+import { ReviewCard } from "./ReviewCard";
 import { TaskInboxCard } from "./TaskInboxCard";
 import { TodayFocusCard } from "./TodayFocusCard";
 import { useAppStore } from "../store/use-app-store";
@@ -36,6 +37,7 @@ export function AppShell() {
       <FocusTimerCard />
       <TaskInboxCard />
       <PlansCard />
+      <ReviewCard />
       <GoalsCard />
       <HabitsCard />
       <ProgressCard />

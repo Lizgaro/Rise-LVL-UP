@@ -156,6 +156,23 @@ describe("AppStore", () => {
     nowSpy.mockRestore();
   });
 
+  it("closes day plan, marks pending day priorities as missed and clears day list", async () => {
+    const store = createAppStore();
+    const doneId = await store.getState().addTask("Закрытый приоритет", "task");
+    const todoId = await store.getState().addTask("Незавершенный приоритет", "task");
+    await store.getState().toggleTaskDone(doneId);
+    const xpBeforeClose = store.getState().rpg.xpTotal;
+    store.getState().setDayPlan([doneId, todoId]);
+
+    await store.getState().closeDayPlan();
+
+    const state = store.getState();
+    expect(state.dayPlan.priorityTaskIds).toEqual([]);
+    expect(state.tasks.find((task) => task.id === doneId)?.status).toBe("done");
+    expect(state.tasks.find((task) => task.id === todoId)?.status).toBe("missed");
+    expect(state.rpg.xpTotal).toBeLessThan(xpBeforeClose);
+  });
+
   it("records recent xp events for user feedback", async () => {
     const store = createAppStore();
     const taskId = await store.getState().addTask("Сделать отчет", "task");
