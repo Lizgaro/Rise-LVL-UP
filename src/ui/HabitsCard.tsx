@@ -19,6 +19,7 @@ export function HabitsCard() {
           <option value="quit">Избавиться</option>
         </select>
         <button
+          data-testid="habit-submit-btn"
           type="button"
           onClick={() => {
             if (!title.trim()) return;
@@ -37,13 +38,18 @@ export function HabitsCard() {
               {habit.title} ({habit.mode === "build" ? "Развить" : "Избавиться"})
             </span>
             <div className="row compact">
-              <button type="button" onClick={() => markHabitStatus(habit.id, "done")}>
+              <button type="button" onClick={() => markHabitStatus(habit.id, "done")} aria-label="Отметить выполнение">
                 Сделано
               </button>
-              <button type="button" onClick={() => markHabitStatus(habit.id, "skipped")}>
+              <button type="button" onClick={() => markHabitStatus(habit.id, "skipped")} aria-label="Отметить пропуск">
                 Пропуск
               </button>
-              <button type="button" onClick={() => markHabitStatus(habit.id, "relapse")}>
+              <button
+                data-testid="habit-relapse-btn"
+                type="button"
+                onClick={() => markHabitStatus(habit.id, "relapse")}
+                aria-label="Отметить срыв"
+              >
                 Срыв
               </button>
             </div>

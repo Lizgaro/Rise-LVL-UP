@@ -50,10 +50,16 @@ export function FocusTimerCard() {
           type="button"
           onClick={completeFocusSession}
           disabled={!timer.isRunning}
+          aria-label="Завершить сессию фокуса"
         >
           Завершить
         </button>
-        <button type="button" onClick={cancelFocusSession} disabled={!timer.isRunning}>
+        <button
+          type="button"
+          onClick={cancelFocusSession}
+          disabled={!timer.isRunning}
+          aria-label="Отменить текущую сессию"
+        >
           Отмена
         </button>
       </div>

@@ -86,6 +86,8 @@ export interface RecoveryQuest {
   xpBonusMultiplier: number;
   expiresAt: number;
   status: RecoveryStatus;
+  focusDone?: boolean;
+  taskDone?: boolean;
 }
 
 export interface AudioSettings {

@@ -44,13 +44,26 @@ export function TaskInboxCard() {
           <li key={task.id} data-testid="task-item-active" className={task.status === "done" ? "done" : ""}>
             <span>{task.title}</span>
             <div className="row compact">
-              <button data-testid="task-complete-check" type="button" onClick={() => void toggleTaskDone(task.id)}>
+              <button
+                data-testid="task-complete-check"
+                type="button"
+                onClick={() => void toggleTaskDone(task.id)}
+                aria-label={task.status === "done" ? "Отметить как невыполненное" : "Отметить как выполненное"}
+              >
                 {task.status === "done" ? "Вернуть" : "Готово"}
               </button>
-              <button type="button" onClick={() => void setTaskScope(task.id, "day")}>
+              <button
+                type="button"
+                onClick={() => void setTaskScope(task.id, "day")}
+                aria-label="Запланировать на сегодня"
+              >
                 В день
               </button>
-              <button type="button" onClick={() => void setTaskScope(task.id, "week")}>
+              <button
+                type="button"
+                onClick={() => void setTaskScope(task.id, "week")}
+                aria-label="Запланировать на неделю"
+              >
                 В неделю
               </button>
             </div>

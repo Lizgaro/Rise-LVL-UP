@@ -23,7 +23,7 @@ export function PlansCard() {
     <section className="card">
       <h2>Планы</h2>
       <div className="grid">
-        <div>
+        <div data-testid="day-plan-container">
           <h3>Сегодня</h3>
           <p className="muted">До 3 приоритетов</p>
           {selectable.map((task) => {
@@ -51,7 +51,7 @@ export function PlansCard() {
           </ul>
         </div>
 
-        <div>
+        <div data-testid="week-plan-container">
           <h3>Неделя</h3>
           <p className="muted">До 10 приоритетов</p>
           {selectable.map((task) => {

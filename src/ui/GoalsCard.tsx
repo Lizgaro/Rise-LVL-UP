@@ -21,6 +21,7 @@ export function GoalsCard() {
           onChange={(e) => setTarget(Math.max(1, Number(e.target.value)))}
         />
         <button
+          data-testid="goal-submit-btn"
           type="button"
           onClick={() => {
             if (!title.trim()) return;
@@ -40,7 +41,7 @@ export function GoalsCard() {
               <span>
                 {goal.currentCount}/{goal.targetCount}
               </span>
-              <button type="button" onClick={() => incrementGoalProgress(goal.id)}>
+              <button type="button" onClick={() => incrementGoalProgress(goal.id)} aria-label="Добавить прогресс">
                 + шаг
               </button>
             </div>
