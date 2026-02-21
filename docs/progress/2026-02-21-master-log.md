@@ -169,10 +169,23 @@
 - Re-verified after changes:
   - `npm run test:run` -> PASS
   - `npm run build` -> PASS
+- Implemented P1/P2 batch #5 (day pulse + visual polish):
+  - Added top summary card `Пульс дня` with priorities, timer state, RPG daily signal, and recovery status.
+  - Updated top-level flow in `AppShell` to show pulse before action cards.
+  - Applied visual refresh in `src/styles.css`:
+    - CSS variables and stronger typography hierarchy
+    - subtle enter animations for page/cards
+    - improved card surfaces, controls, and mobile responsiveness
+- Ran external Gemini micro-audit for next UX improvements and logged instructions/results:
+  - `docs/progress/2026-02-21-agent-orchestration-log.md`
+- Re-verified after P1/P2 batch #5:
+  - `npm run test:run -- src/ui/AppShell.test.tsx` -> PASS
+  - `npm run test:run` -> PASS
+  - `npm run build` -> PASS
 
 ## In Progress
 - Monitoring issue #1 for Jules response.
-- Executing P1 improvements from critical audit checklist.
+- Executing remaining P1/P2 improvements from critical audit checklist.
 
 ## Remaining
 - Run full e2e in environment with required system libs (`libnspr4.so` currently missing).

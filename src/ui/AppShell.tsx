@@ -1,4 +1,5 @@
 import { FocusTimerCard } from "./FocusTimerCard";
+import { DayPulseCard } from "./DayPulseCard";
 import { GoalsCard } from "./GoalsCard";
 import { HabitsCard } from "./HabitsCard";
 import { NoiseCard } from "./NoiseCard";
@@ -28,6 +29,7 @@ export function AppShell() {
         </div>
       ) : null}
 
+      <DayPulseCard />
       <TodayFocusCard />
       <FocusTimerCard />
       <TaskInboxCard />

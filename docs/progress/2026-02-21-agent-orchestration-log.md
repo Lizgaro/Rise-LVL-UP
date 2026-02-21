@@ -88,6 +88,20 @@ Key outputs:
 Adoption status:
 - `Accepted as baseline` (подходит как каркас для P0 voice-roadmap).
 
+### Task G - Focused UX Micro-Audit After Pulse/Polish Iteration
+
+Instruction sent:
+`Ты продуктовый критик. Контекст: личный локальный трекер продуктивности (русский UI): задачи/цели/привычки/pomodoro/RPG/voice/noise. Уже есть: hero-блок, pulse-card, weekly summary, recovery quest. Дай 8 конкретных улучшений UX для минималистичного интерфейса, каждое в формате: [Проблема] [Решение] [Как измерить эффект]. Без воды.`
+
+Key outputs:
+- Предложен `Zen mode` для режима активного фокуса с минимизацией отвлекающих блоков.
+- Предложено подтверждение голосового ввода через preview-чипы перед сохранением.
+- Рекомендован command-palette поток для быстрых действий опытного пользователя.
+- Даны метрики оценки эффекта (time-to-action, manual corrections rate, session length).
+
+Adoption status:
+- `Partially accepted` (используется как вход в следующий P1/P2 backlog; элементы, выходящие за MVP, отложены).
+
 ## Agent: GitHub @Jules
 
 Status:
