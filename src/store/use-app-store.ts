@@ -259,13 +259,14 @@ export function createAppStore() {
 
     incrementGoalProgress: (goalId) => {
       set((state) => {
-        const goals = state.goals.map((goal) => {
+        const goals: Goal[] = state.goals.map((goal) => {
           if (goal.id !== goalId || goal.status !== "active") return goal;
           const currentCount = Math.min(goal.targetCount, goal.currentCount + 1);
+          const status: Goal["status"] = currentCount >= goal.targetCount ? "done" : "active";
           return {
             ...goal,
             currentCount,
-            status: currentCount >= goal.targetCount ? "done" : "active",
+            status,
           };
         });
 
