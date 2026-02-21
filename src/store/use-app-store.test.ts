@@ -127,4 +127,29 @@ describe("AppStore", () => {
     expect(next.noise.noiseType).toBe("pink");
     expect(next.noise.volume).toBe(0.65);
   });
+
+  it("marks overdue day priority tasks as missed and applies rpg penalty", async () => {
+    const jan1 = new Date("2026-01-01T08:00:00.000Z").getTime();
+    const jan2 = new Date("2026-01-02T08:00:00.000Z").getTime();
+
+    const nowSpy = vi.spyOn(Date, "now").mockReturnValue(jan1);
+
+    const store = createAppStore();
+    const completedTaskId = await store.getState().addTask("Сделанная задача", "task");
+    const overdueTaskId = await store.getState().addTask("Просроченная задача", "task");
+    await store.getState().toggleTaskDone(completedTaskId);
+    const xpBeforeMissed = store.getState().rpg.xpTotal;
+    store.getState().setDayPlan([overdueTaskId]);
+    await store.getState().flushPersistence();
+
+    nowSpy.mockReturnValue(jan2);
+
+    const restored = createAppStore();
+    await restored.getState().loadInitial();
+    const task = restored.getState().tasks.find((item) => item.id === overdueTaskId);
+    expect(task?.status).toBe("missed");
+    expect(restored.getState().rpg.xpTotal).toBeLessThan(xpBeforeMissed);
+
+    nowSpy.mockRestore();
+  });
 });

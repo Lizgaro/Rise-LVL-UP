@@ -75,6 +75,7 @@ export interface AppActions {
   addHabit: (title: string, mode: HabitMode) => string;
   markHabitStatus: (habitId: string, status: HabitLogStatus, note?: string) => void;
   startFocusSession: (focusMinutes?: number, breakMinutes?: number) => void;
+  applyMissedTasks: (now?: number) => Promise<void>;
   tickTimer: (now?: number) => void;
   completeFocusSession: () => void;
   cancelFocusSession: () => void;
@@ -309,6 +310,7 @@ export function createAppStore() {
         if (persistedNoise.noiseType === "off") noiseController.stop();
       }
 
+      await get().applyMissedTasks(Date.now());
       get().tickTimer(Date.now());
     },
 
@@ -527,6 +529,48 @@ export function createAppStore() {
           rpg,
           recoveryQuest,
         };
+      });
+    },
+
+    applyMissedTasks: async (now) => {
+      const checkNow = now ?? Date.now();
+      const state = get();
+      const isDayExpired = state.dayPlan.date < todayKey(checkNow);
+      const isWeekExpired = state.weekPlan.weekStartDate < weekStartKey(checkNow);
+
+      if (!isDayExpired && !isWeekExpired) return;
+
+      const dayPriority = new Set(isDayExpired ? state.dayPlan.priorityTaskIds : []);
+      const weekPriority = new Set(isWeekExpired ? state.weekPlan.priorityTaskIds : []);
+      const nextTasks: Task[] = [];
+      const missedTasks: Task[] = [];
+
+      for (const task of state.tasks) {
+        const shouldMiss =
+          task.status === "todo" && (dayPriority.has(task.id) || weekPriority.has(task.id));
+
+        if (!shouldMiss) {
+          nextTasks.push(task);
+          continue;
+        }
+
+        const missedTask: Task = { ...task, status: "missed" };
+        nextTasks.push(missedTask);
+        missedTasks.push(missedTask);
+      }
+
+      if (missedTasks.length === 0) return;
+
+      await Promise.all(missedTasks.map((task) => saveTask(task)));
+
+      let rpg = state.rpg;
+      for (let i = 0; i < missedTasks.length; i += 1) {
+        rpg = applyProgressWithBonus(rpg, { type: "task_missed" });
+      }
+
+      set({ tasks: nextTasks, rpg });
+      enqueuePersistence(async () => {
+        await saveRpgProfile(rpg);
       });
     },
 

@@ -118,6 +118,21 @@
 - Added TDD coverage for cross-reload restore of goals/habits/plans/rpg/noise:
   - `src/store/use-app-store.test.ts`
 - Updated README storage description for current behavior.
+- Implemented P0 batch #4 (voice quick-add):
+  - Added Russian voice intent parser (`task/goal/habit` + day/week scope for tasks).
+  - Added voice UI control in task inbox with browser support fallback.
+  - Added routing from speech intent to automatic entity creation.
+- Added parser unit tests:
+  - `src/voice/intent-parser.test.ts`
+- Updated README with voice quick-add status.
+- Implemented P0 batch #5 (`task_missed` penalties):
+  - Added overdue day/week priority scan in store (`applyMissedTasks`).
+  - Added auto-run of overdue scan during `loadInitial`.
+  - Added task status transition `todo -> missed` for expired priorities.
+  - Added RPG penalty application for each missed task.
+- Added TDD coverage for overdue->missed transition with XP decrease:
+  - `src/store/use-app-store.test.ts`
+- Updated README with missed-task behavior.
 - Re-verified after changes:
   - `npm run test:run` -> PASS
   - `npm run build` -> PASS
@@ -125,14 +140,13 @@
 ## In Progress
 - Monitoring issue #1 for Jules response.
 - Executing next P0 items from critical audit checklist:
-  - voice input
-  - task missed penalties
+  - none (P0 batches #1..#5 completed)
 
 ## Remaining
 - Run full e2e in environment with required system libs (`libnspr4.so` currently missing).
 - Review Jules output on issue #1 and integrate follow-up changes if needed.
 - Execute remaining P0 checklist from:
-  - `docs/research/2026-02-21-critical-audit-v2.md` (except timer core #1, noise engine #2, persistence #3)
+  - `docs/research/2026-02-21-critical-audit-v2.md` (P0 закрыт; далее P1/P2)
 - Re-verify tests after each P0 increment:
   - `npm run test:run`
   - `npm run build`

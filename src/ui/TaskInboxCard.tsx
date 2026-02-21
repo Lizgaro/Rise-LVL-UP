@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useAppStore } from "../store/use-app-store";
+import { VoiceQuickAdd } from "./VoiceQuickAdd";
 
 export function TaskInboxCard() {
   const tasks = useAppStore((state) => state.tasks);
@@ -38,6 +39,7 @@ export function TaskInboxCard() {
           Добавить
         </button>
       </div>
+      <VoiceQuickAdd />
 
       <ul className="list">
         {tasks.map((task) => (
