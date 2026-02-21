@@ -2,6 +2,7 @@ import "fake-indexeddb/auto";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { db } from "../storage/db";
 import { clearAllData } from "../storage/repository";
+import * as repository from "../storage/repository";
 import { createAppStore } from "./use-app-store";
 
 const TIMER_STORAGE_KEY = "rise-lvl-up:timer-v1";
@@ -256,5 +257,19 @@ describe("AppStore", () => {
 
     expect(restored.getState().recoveryQuest?.status).toBe("expired");
     nowSpy.mockRestore();
+  });
+
+  it("sets ui error when queued persistence write fails", async () => {
+    const store = createAppStore();
+    const saveDayPlanSpy = vi
+      .spyOn(repository, "saveDayPlan")
+      .mockRejectedValueOnce(new Error("write failed"));
+
+    const taskId = await store.getState().addTask("Проверка сохранения", "task");
+    store.getState().setDayPlan([taskId]);
+    await store.getState().flushPersistence();
+
+    expect(store.getState().uiError).toContain("Ошибка сохранения данных");
+    saveDayPlanSpy.mockRestore();
   });
 });

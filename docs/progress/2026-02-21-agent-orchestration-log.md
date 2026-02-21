@@ -289,3 +289,66 @@ Key outputs:
 
 Adoption status:
 - `Accepted` (внедрены context-aware copy rules + offline guard; остаток вынесен в vNext tuning).
+
+### Task S - Principal PM Ruthless Re-Audit (2026-02-21)
+
+Instruction sent:
+`Ты Principal Product Manager. Контекст проекта: личный локальный productivity web app Rise LVL UP (русский UI), уже есть: задачи/цели/планы день-неделя/привычки+режим отказа/фокус-таймер/шумы/voice quick-add/PWA/backup JSON/recovery quest/RPG. Дай максимально жесткий аудит как перед релизом: 1) топ-10 критичных рисков, 2) топ-10 must-have улучшений только high impact, 3) MoSCoW приоритизация, 4) что точно НЕ делать сейчас.`
+
+Key outputs:
+- Подтвержден приоритет data safety и core loop вместо расширения scope.
+- Выделены риски local storage loss, voice robustness, mobile overload.
+- Зафиксированы anti-goals: не трогать backend/auth/social.
+
+Adoption status:
+- `Partially accepted` (взяты только high-impact пункты без раздувания MVP).
+
+### Task T - Senior UX Ruthless Audit (2026-02-21)
+
+Instruction sent:
+`Ты Senior UX Research + UX Writer. Дай ruthless UX-аудит для одностраничного productivity app с множеством карточек.`
+
+Key outputs:
+- Подтвержден риск "dashboard anxiety" и перегрузки карточками.
+- Рекомендована action-first IA и сокращение постоянного визуального шума.
+- Подтверждено, что voice должен быть быстрым action entry, а не тяжелым контент-блоком.
+
+Adoption status:
+- `Accepted as audit input` (используется для приоритизации must-have UX стабилизаций).
+
+### Task U - Behavioral Science Audit (2026-02-21)
+
+Instruction sent:
+`Ты Behavioral Scientist (habits/relapse/motivation). Проведи критичный аудит механик RPG+штрафов+привычек.`
+
+Key outputs:
+- Подтвержден риск штрафной спирали при агрессивной пенализации.
+- Рекомендованы guardrails для recovery-first цикла.
+- Выделены метрики качества восстановления после срыва.
+
+Adoption status:
+- `Accepted as guardrail input` (используется как ограничение при будущих правках progress-rules).
+
+### Task V - Staff QA Pre-Release Audit (2026-02-21)
+
+Instruction sent:
+`Ты Staff QA + Reliability Engineer. Дай pre-release аудит локального React+Zustand+Dexie+PWA приложения.`
+
+Key outputs:
+- Подсвечены P0 риски: timezone correctness, persistence failure visibility, false-confidence в тестовой среде.
+- Выделен приоритет browser edge-case проверок и strict regression gate.
+
+Adoption status:
+- `Accepted` (результаты перенесены в `docs/research/2026-02-21-expert-critical-audit-v3.md`).
+
+### Task W - Local-First Architecture Audit (2026-02-21)
+
+Instruction sent:
+`Ты Solution Architect для local-first приложений. Дай максимально критичный аудит архитектуры состояния/персистентности/оффлайна/PWA update flow.`
+
+Key outputs:
+- Подтверждены архитектурные риски: silent write failures, multi-tab desync, update strategy mismatch.
+- Дана минимально-сложная последовательность исправлений для hardening без backend.
+
+Adoption status:
+- `Accepted` (используется для приоритетов P0/P1 следующего implementation batch).

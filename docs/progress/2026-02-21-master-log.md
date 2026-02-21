@@ -476,3 +476,74 @@
 
 ## Next Step
 - Begin new cycle from `docs/progress/current-plan.md` and execute top high-impact item first.
+
+## Update (2026-02-21): Expert Ruthless Audit v3
+- User requested maximum-critical expert review.
+- Applied skill workflow for parallel expert audits and code-review mode:
+  - `dispatching-parallel-agents`
+  - `requesting-code-review`
+- Ran parallel external expert streams (PM/UX/Behavioral/QA/Architecture) and logged prompts/results:
+  - `docs/progress/2026-02-21-agent-orchestration-log.md` (Task S-W)
+- Ran local verification and root-cause diagnostics:
+  - `npm run test:run` -> PASS
+  - `npm run build` -> PASS
+  - `npm run e2e` -> FAIL in current shell due proxy/no-proxy localhost mismatch
+- Created consolidated critical audit report:
+  - `docs/research/2026-02-21-expert-critical-audit-v3.md`
+- Updated reset baseline plan with new prioritized P0/P1 backlog:
+  - `docs/progress/current-plan.md`
+
+## In Progress
+- Start P0 implementation batch from Expert Audit v3.
+
+## Remaining
+- P0:
+  - e2e localhost proxy/no-proxy hardening
+  - local date-key correctness (replace UTC day/week keys)
+  - persistence error visibility (remove silent write failures)
+- P1:
+  - PWA update strategy alignment
+  - cross-tab sync + reactive network diagnostics
+
+## Next Step
+- Implement P0 item #1 (e2e localhost proxy/no-proxy hardening), then run full regression gate.
+
+## Update (2026-02-21): P0/P1 Batch #19 - Reliability Hardening (Top-5 Expert Priorities)
+- Implemented e2e localhost/proxy hardening:
+  - `playwright.config.ts` now enforces `NO_PROXY/no_proxy` merge with `localhost,127.0.0.1`.
+  - switched `baseURL/webServer.url` to `http://localhost:4173`.
+- Implemented local-date correctness:
+  - new module: `src/core/date-keys.ts`
+  - new tests: `src/core/date-keys.test.ts`
+  - day/week keys in store migrated from UTC to local-date helpers.
+  - RPG daily date key in progress rules migrated to local-date helper.
+- Implemented persistence error visibility:
+  - removed silent failure behavior for queue writes in store.
+  - now persistence failures are logged and surfaced in UI via `uiError`.
+  - added test: `src/store/use-app-store.test.ts` (`sets ui error when queued persistence write fails`).
+- Implemented PWA update strategy alignment:
+  - `vite.config.ts`: `registerType` switched from `autoUpdate` to `prompt`.
+- Implemented cross-tab and runtime diagnostics hardening:
+  - `BroadcastChannel` store sync for external tab updates.
+  - `HealthBanner` now reacts to `online/offline` events after mount.
+
+### Verification after batch #19
+- `npm run test:run` -> PASS (71/71)
+- `npm run build` -> PASS
+- `npm run e2e` -> FAIL in current sandbox shell:
+  - webServer readiness check gets `connect EPERM 127.0.0.1:4173`
+  - this environment blocks localhost loopback checks, so browser gate must be re-run in unrestricted shell.
+
+## In Progress
+- Reliability hardening implementation done.
+- Pending: re-run e2e in unrestricted environment and confirm green browser gate.
+
+## Remaining
+- P2:
+  - offline stress checks for long idle/restore cases.
+  - storage-protection edge-case coverage.
+- Hypothesis/planning:
+  - Telegram external channel model (without implementation).
+
+## Next Step
+- Run `npm run e2e` in unrestricted environment (no loopback EPERM), then continue with P2 stress-hardening batch.

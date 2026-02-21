@@ -1,11 +1,8 @@
 import { LEVEL_RULES, RECOVERY_RULES, XP_RULES } from "../domain/constants";
 import type { DomainEvent, RPGProfile } from "../domain/types";
+import { getLocalDateKey } from "./date-keys";
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
-
-function toDateKey(now: number): string {
-  return new Date(now).toISOString().slice(0, 10);
-}
 
 function getNow(event: DomainEvent): number {
   return event.now ?? Date.now();
@@ -56,7 +53,7 @@ function applyPositiveXp(
   xp: number,
   now: number,
 ): RPGProfile {
-  const dateKey = toDateKey(now);
+  const dateKey = getLocalDateKey(now);
   const isSameDay = profile.dailyXpDate === dateKey;
   const earnedToday = isSameDay ? profile.dailyXpEarned ?? 0 : 0;
   const cappedXp = Math.max(0, Math.min(xp, XP_RULES.maxDailyXp - earnedToday));

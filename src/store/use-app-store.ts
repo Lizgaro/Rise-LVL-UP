@@ -1,6 +1,7 @@
 import { useStore } from "zustand";
 import { createStore } from "zustand/vanilla";
 import { createNoiseController } from "../audio/noise-engine";
+import { getLocalDateKey, getLocalWeekStartKey } from "../core/date-keys";
 import { setDayPriorities, setWeekPriorities } from "../core/planning";
 import { applyEvent } from "../core/progress-rules";
 import { TIMER_DEFAULTS } from "../domain/constants";
@@ -105,15 +106,11 @@ function makeId(): string {
 }
 
 function todayKey(now: number = Date.now()): string {
-  return new Date(now).toISOString().slice(0, 10);
+  return getLocalDateKey(now);
 }
 
 function weekStartKey(now: number = Date.now()): string {
-  const d = new Date(now);
-  const day = d.getUTCDay();
-  const diff = day === 0 ? -6 : 1 - day;
-  d.setUTCDate(d.getUTCDate() + diff);
-  return d.toISOString().slice(0, 10);
+  return getLocalWeekStartKey(now);
 }
 
 const initialRpg: RPGProfile = {
@@ -128,6 +125,21 @@ const initialRpg: RPGProfile = {
 const MS_IN_MINUTE = 60_000;
 const TIMER_STORAGE_KEY = "rise-lvl-up:timer-v1";
 const MAX_XP_EVENTS = 20;
+const STORE_SYNC_CHANNEL = "rise-lvl-up:store-sync-v1";
+const PERSISTENCE_ERROR_MESSAGE =
+  "Ошибка сохранения данных. Проверь резервную копию и перезагрузи приложение.";
+
+type SyncMessage = {
+  type: "snapshot_saved";
+  sourceId: string;
+  at: number;
+};
+
+function isSyncMessage(value: unknown): value is SyncMessage {
+  if (!value || typeof value !== "object") return false;
+  const payload = value as Partial<SyncMessage>;
+  return payload.type === "snapshot_saved" && typeof payload.sourceId === "string" && typeof payload.at === "number";
+}
 
 function clampMinutes(minutes: number, fallback: number): number {
   if (!Number.isFinite(minutes)) return fallback;
@@ -411,12 +423,59 @@ function advanceTimerState(
 }
 
 export function createAppStore() {
+  const sourceId = makeId();
   let persistenceQueue: Promise<void> = Promise.resolve();
-  const enqueuePersistence = (work: () => Promise<void>): void => {
-    persistenceQueue = persistenceQueue.then(work).catch(() => undefined);
+  let isApplyingRemoteSync = false;
+  let syncInFlight: Promise<void> | undefined;
+  let syncChannel: BroadcastChannel | undefined;
+  let syncBroadcastTimer: number | undefined;
+
+  const reportPersistenceError = (error: unknown): void => {
+    console.error("Persistence write failed", error);
+    appStoreRef?.setState({ uiError: PERSISTENCE_ERROR_MESSAGE });
   };
 
-  return createStore<AppStoreState>()((set, get) => ({
+  const scheduleSyncBroadcast = (): void => {
+    if (isApplyingRemoteSync) return;
+    if (typeof window === "undefined") return;
+    if (!syncChannel) return;
+    if (syncBroadcastTimer !== undefined) return;
+
+    syncBroadcastTimer = window.setTimeout(() => {
+      syncBroadcastTimer = undefined;
+      const message: SyncMessage = { type: "snapshot_saved", sourceId, at: Date.now() };
+      syncChannel?.postMessage(message);
+    }, 120);
+  };
+
+  const enqueuePersistence = (work: () => Promise<void>): void => {
+    persistenceQueue = persistenceQueue
+      .then(async () => {
+        await work();
+        scheduleSyncBroadcast();
+      })
+      .catch((error) => {
+        reportPersistenceError(error);
+      });
+  };
+  let appStoreRef: ReturnType<typeof createStore<AppStoreState>> | undefined;
+  const runRemoteSync = async (): Promise<void> => {
+    if (!appStoreRef || syncInFlight) return;
+    isApplyingRemoteSync = true;
+    syncInFlight = appStoreRef
+      .getState()
+      .loadInitial()
+      .catch((error) => {
+        console.error("Cross-tab sync failed", error);
+      })
+      .finally(() => {
+        isApplyingRemoteSync = false;
+        syncInFlight = undefined;
+      });
+    await syncInFlight;
+  };
+
+  const store = createStore<AppStoreState>()((set, get) => ({
     ...initialState,
 
     loadInitial: async () => {
@@ -479,6 +538,7 @@ export function createAppStore() {
 
       await saveTask(task);
       set((state) => ({ tasks: [task, ...state.tasks] }));
+      scheduleSyncBroadcast();
       return task.id;
     },
 
@@ -495,6 +555,7 @@ export function createAppStore() {
       };
 
       await saveTask(nextTask);
+      scheduleSyncBroadcast();
 
       set((prev) => {
         const tasks = prev.tasks.some((task) => task.id === id)
@@ -536,6 +597,7 @@ export function createAppStore() {
       set((state) => ({
         tasks: state.tasks.map((task) => (task.id === id ? nextTask : task)),
       }));
+      scheduleSyncBroadcast();
     },
 
     setDayPlan: (taskIds) => {
@@ -975,6 +1037,20 @@ export function createAppStore() {
 
     clearUiError: () => set({ uiError: undefined }),
   }));
+
+  appStoreRef = store;
+
+  if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+    syncChannel = new window.BroadcastChannel(STORE_SYNC_CHANNEL);
+    syncChannel.onmessage = (event: MessageEvent<unknown>) => {
+      const payload = event.data;
+      if (!isSyncMessage(payload)) return;
+      if (payload.sourceId === sourceId) return;
+      void runRemoteSync();
+    };
+  }
+
+  return store;
 }
 
 export const appStore = createAppStore();

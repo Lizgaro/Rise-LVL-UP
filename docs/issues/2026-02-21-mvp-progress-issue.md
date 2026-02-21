@@ -676,3 +676,37 @@
 ### Осталось
 
 - Взять следующий high-impact пункт из `docs/progress/current-plan.md` и реализовывать батчами с полной верификацией после каждого шага.
+
+---
+
+## Обновление (2026-02-21): P0/P1 batch #19 - Reliability Hardening
+
+### Реализовано
+
+- Закрыты top-5 приоритетов из Expert Audit v3:
+  - `playwright.config.ts`: localhost/proxy hardening (`NO_PROXY/no_proxy` merge + localhost URL)
+  - local date-key логика вместо UTC:
+    - `src/core/date-keys.ts`
+    - `src/core/date-keys.test.ts`
+    - интеграция в `src/store/use-app-store.ts` и `src/core/progress-rules.ts`
+  - visibility ошибок persistence:
+    - убран silent-fail в очереди сохранения store
+    - при сбое записи теперь выставляется `uiError`
+    - тест: `src/store/use-app-store.test.ts`
+  - выровнен PWA update strategy:
+    - `vite.config.ts` (`registerType: prompt`)
+  - добавлен cross-tab sync + реактивная сеть:
+    - `BroadcastChannel` синхронизация состояния
+    - `src/ui/HealthBanner.tsx` реагирует на `online/offline`
+- Regression:
+  - `npm run test:run` PASS (71/71)
+  - `npm run build` PASS
+
+### Осталось
+
+- `npm run e2e` нужно перепроверить вне текущего sandbox-окружения:
+  - сейчас webServer check падает на `connect EPERM 127.0.0.1:4173` (loopback ограничение окружения).
+- Далее vNext/P2:
+  - offline stress idle/restore сценарии
+  - storage-protection edge cases
+  - гипотеза Telegram-канала (без реализации).

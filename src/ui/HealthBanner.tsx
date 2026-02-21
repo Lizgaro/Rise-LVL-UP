@@ -13,14 +13,31 @@ function storageProtectionLabel(status: StorageProtectionStatus): string {
 }
 
 export function HealthBanner() {
+  const [capabilities, setCapabilities] = useState(() =>
+    detectRuntimeCapabilities(typeof window !== "undefined" ? window : undefined),
+  );
   const [storageProtection, setStorageProtection] = useState<StorageProtectionStatus>(() =>
     typeof window === "undefined" ? "unsupported" : "not_granted",
   );
 
-  const checks = useMemo(
-    () => buildHealthChecks(detectRuntimeCapabilities(typeof window !== "undefined" ? window : undefined)),
-    [],
-  );
+  const checks = useMemo(() => buildHealthChecks(capabilities), [capabilities]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const updateCapabilities = () => {
+      setCapabilities(detectRuntimeCapabilities(window));
+    };
+
+    updateCapabilities();
+    window.addEventListener("online", updateCapabilities);
+    window.addEventListener("offline", updateCapabilities);
+    return () => {
+      window.removeEventListener("online", updateCapabilities);
+      window.removeEventListener("offline", updateCapabilities);
+    };
+  }, []);
+
   useEffect(() => {
     if (typeof window === "undefined") return;
     let mounted = true;

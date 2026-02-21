@@ -23,26 +23,39 @@ HEAD: `2d6442e`
   - `docs/progress/2026-02-21-master-log.md`
   - `docs/research/2026-02-22-browser-must-have-audit.md`
   - `docs/progress/2026-02-21-agent-orchestration-log.md`
+- Выполнен reliability-hardening batch после Expert Audit v3:
+  - e2e localhost/proxy hardening в `playwright.config.ts` (NO_PROXY merge + localhost URL)
+  - local date keys вместо UTC в day/week + RPG daily date key
+  - persistence queue error visibility (без silent fail)
+  - PWA update strategy alignment (`registerType: prompt`)
+  - cross-tab sync (`BroadcastChannel`) + reactive network health
+- Проверки после batch:
+  - `npm run test:run` -> PASS (71/71)
+  - `npm run build` -> PASS
+  - `npm run e2e` -> FAIL в текущем sandbox-окружении: loopback `localhost:4173` returns `EPERM`
 
 ## Осталось (vNext, не блокирует MVP)
 
-1. Offline-stress edge cases:
-   - долгий idle, восстановление вкладки, повторные resume-сценарии.
-2. Storage-protection edge cases:
-   - редкие браузерные статусы Persistent Storage API.
-3. Точечный copy-tuning update prompt:
-   - локальная A/B верификация формулировок.
-4. План гипотез по Telegram-боту (без реализации):
-   - только как внешний канал ввода/напоминаний, web остается source-of-truth.
+1. Reliability verification in unrestricted environment:
+   - перепроверить `npm run e2e` вне текущего sandbox, где loopback-сокеты не блокируются.
+2. P2 UX/risk hardening:
+   - offline stress edge cases (idle/restore).
+   - storage-protection edge cases.
+3. Гипотеза Telegram-бота (без реализации):
+   - только внешний канал ввода/напоминаний, web остается source-of-truth.
 
 ## Следующий рабочий цикл (старт заново)
 
 1. Жесткий аудит в браузере по must-have сценариям (без косметических изменений).
+   - Статус: выполнено.
+   - Отчет: `docs/research/2026-02-21-expert-critical-audit-v3.md`
 2. Приоритизация только high-impact задач (P0/P1) на основе аудита.
+   - Статус: выполнено.
 3. Реализация по одной задаче с полным regression после каждой:
    - `npm run test:run`
    - `npm run e2e`
    - `npm run build`
+   - Статус: в процессе (unit/build пройдены, e2e требует прогон вне sandbox loopback-ограничений).
 4. После каждого батча обновлять:
    - `docs/progress/current-plan.md`
    - `docs/progress/2026-02-21-master-log.md`
