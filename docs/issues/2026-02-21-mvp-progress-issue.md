@@ -536,3 +536,35 @@
   - PWA/mobile-first упаковка
   - Persistent Storage API (защита local data)
   - лёгкий onboarding первого запуска.
+
+---
+
+## Обновление (2026-02-22): P1/P2 batch #15 - Storage Protection + First-Run Onboarding
+
+### Реализовано
+
+- Добавлен must-have flow защиты local данных через Persistent Storage API:
+  - новый core-модуль `src/core/storage-protection.ts`
+  - диагностика и кнопка `Защитить данные` в `HealthBanner`
+  - расширены тесты `src/core/storage-protection.test.ts`
+- Добавлен onboarding первого запуска (3 шага):
+  - новый core-модуль `src/core/onboarding.ts`
+  - карточка `Быстрый старт (1 минута)` в `AppShell`
+  - локальный флаг завершения onboarding
+  - тесты `src/core/onboarding.test.ts`
+- Обновлены UI-слой и покрытие:
+  - `src/ui/AppShell.tsx`, `src/ui/AppShell.test.tsx`
+  - `src/ui/HealthBanner.tsx`
+  - `src/styles.css`
+- Полная верификация после изменений:
+  - `npm run e2e` PASS (6/6)
+  - `npm run test:run` PASS (54/54)
+  - `npm run build` PASS
+
+### Осталось
+
+- Блокирующих задач по MVP-ядру нет.
+- vNext (отдельная итерация):
+  - PWA/mobile-first
+  - расширение browser coverage для storage-protection edge cases
+  - персонализированный onboarding по сценарию пользователя.

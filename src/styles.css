@@ -146,6 +146,18 @@ body {
   background: linear-gradient(180deg, #ffffff 0%, #f6f6ff 100%);
 }
 
+.onboarding-card {
+  border-color: #d8e6f6;
+  background: linear-gradient(180deg, #ffffff 0%, #f5fbff 100%);
+}
+
+.onboarding-list {
+  margin: 8px 0 12px;
+  padding-left: 20px;
+  display: grid;
+  gap: 4px;
+}
+
 .card h2,
 .card h3 {
   margin-top: 0;

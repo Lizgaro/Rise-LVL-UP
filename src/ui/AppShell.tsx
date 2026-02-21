@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { shouldUseFocusLayout } from "../core/focus-mode";
+import { markOnboardingDone, shouldShowOnboarding } from "../core/onboarding";
 import { FocusTimerCard } from "./FocusTimerCard";
 import { DayPulseCard } from "./DayPulseCard";
 import { GoalsCard } from "./GoalsCard";
@@ -19,6 +20,7 @@ export function AppShell() {
   const uiError = useAppStore((state) => state.uiError);
   const clearUiError = useAppStore((state) => state.clearUiError);
   const timerRunning = useAppStore((state) => state.timer.isRunning);
+  const [showOnboarding, setShowOnboarding] = useState(() => shouldShowOnboarding());
   const [focusModeEnabled, setFocusModeEnabled] = useState(false);
   const [workspaceView, setWorkspaceView] = useState<WorkspaceView>("focus");
   const focusLayout = shouldUseFocusLayout(focusModeEnabled, timerRunning);
@@ -29,6 +31,27 @@ export function AppShell() {
         <h1>Rise LVL UP</h1>
         <p className="muted">Минималистичный личный трекер продуктивности</p>
       </header>
+
+      {showOnboarding ? (
+        <section className="card onboarding-card" data-testid="onboarding-card">
+          <h2>Быстрый старт (1 минута)</h2>
+          <ol className="onboarding-list">
+            <li>Выбери рабочий экран: `Фокус`, `Планирование` или `Ревью`.</li>
+            <li>Добавь 1-3 задачи и отметь приоритет дня.</li>
+            <li>Запусти таймер и закрой первую фокус-сессию.</li>
+          </ol>
+          <button
+            data-testid="onboarding-complete-btn"
+            type="button"
+            onClick={() => {
+              markOnboardingDone();
+              setShowOnboarding(false);
+            }}
+          >
+            Понятно, начинаю
+          </button>
+        </section>
+      ) : null}
 
       {uiError ? (
         <div className="error">

@@ -334,6 +334,29 @@
 - Added dedicated audit document:
   - `docs/research/2026-02-22-browser-must-have-audit.md`
 
+## Update (2026-02-22): P1/P2 batch #15 - Storage Protection + First-Run Onboarding
+- Implemented local data protection flow in health diagnostics:
+  - Added storage protection core module:
+    - `src/core/storage-protection.ts`
+    - `src/core/storage-protection.test.ts`
+  - `HealthBanner` now detects persistent-storage status and exposes action:
+    - `Защитить данные` (when browser supports and permission is not granted)
+  - Storage health detail now includes explicit protection status.
+- Implemented first-run onboarding (3-step quick-start):
+  - Added onboarding core module:
+    - `src/core/onboarding.ts`
+    - `src/core/onboarding.test.ts`
+  - Added `Быстрый старт (1 минута)` card in `AppShell` with local completion flag.
+- Updated UI and regression coverage:
+  - `src/ui/AppShell.tsx`
+  - `src/ui/AppShell.test.tsx`
+  - `src/ui/HealthBanner.tsx`
+  - `src/styles.css`
+- Re-verified full quality gate:
+  - `npm run e2e` (Windows PowerShell) -> PASS (6/6)
+  - `npm run test:run` -> PASS (54/54)
+  - `npm run build` -> PASS
+
 ## In Progress
 - No blocking implementation tasks for MVP core.
 
@@ -341,9 +364,9 @@
 - MVP core scope: completed.
 - Optional vNext backlog (non-blocking):
   - PWA packaging and mobile-first polish.
-  - Persistent Storage API flow to harden local data retention.
+  - Browser coverage hardening for storage-protection UX edge cases.
   - Optional cloud-synced backup workflow (without auth complexity).
-  - Lightweight first-run onboarding.
+  - Onboarding personalization by user scenario (work/study/fitness).
 
 ## Next Step
-- Start separate vNext planning iteration based on browser audit priorities and user prioritization.
+- Start separate vNext planning iteration based on updated browser audit priorities and user prioritization.

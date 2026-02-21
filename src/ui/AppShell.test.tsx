@@ -5,6 +5,7 @@ import App from "../App";
 describe("Russian UI", () => {
   it("renders focused default workspace in Russian", () => {
     const html = renderToStaticMarkup(<App />);
+    expect(html).toContain("Быстрый старт (1 минута)");
     expect(html).toContain("Рабочий экран");
     expect(html).toContain("Фокус");
     expect(html).toContain("Планирование");
