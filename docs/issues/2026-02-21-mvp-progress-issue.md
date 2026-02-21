@@ -710,3 +710,23 @@
   - offline stress idle/restore сценарии
   - storage-protection edge cases
   - гипотеза Telegram-канала (без реализации).
+
+---
+
+## Обновление (2026-02-21): Batch #19 verification completion
+
+### Реализовано
+
+- Дошлифован Playwright webServer binding:
+  - `playwright.config.ts`: `--host 0.0.0.0` + readiness `127.0.0.1`
+- Финальный regression:
+  - `npm run test:run` PASS (71/71)
+  - `npm run build` PASS
+  - `npm run e2e` PASS (Windows shell, 6/6)
+
+### Осталось
+
+- P2 hardening:
+  - offline stress edge cases (idle/restore)
+  - storage-protection edge cases
+- Telegram hypothesis planning (без реализации).

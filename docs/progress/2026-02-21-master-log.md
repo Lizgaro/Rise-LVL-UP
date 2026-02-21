@@ -547,3 +547,25 @@
 
 ## Next Step
 - Run `npm run e2e` in unrestricted environment (no loopback EPERM), then continue with P2 stress-hardening batch.
+
+## Update (2026-02-21): Batch #19 Verification Completion
+- Applied additional Playwright host-binding hardening for reliability:
+  - `playwright.config.ts`: web server command uses `--host 0.0.0.0`, readiness URL/baseURL remain `127.0.0.1`.
+- Re-verified complete gate:
+  - `npm run test:run` -> PASS (71/71)
+  - `npm run build` -> PASS
+  - `npm run e2e` in Windows shell -> PASS (6/6)
+- Confirmed: sandbox-shell may still show loopback `EPERM`; release gate validated in Windows shell.
+
+## In Progress
+- Batch #19 completed and verified.
+
+## Remaining
+- P2 hardening:
+  - offline stress checks for long idle/restore cases.
+  - storage-protection edge-case coverage.
+- Hypothesis/planning:
+  - Telegram external channel model (without implementation).
+
+## Next Step
+- Start P2 stress-hardening batch with browser-oriented edge-case tests first.

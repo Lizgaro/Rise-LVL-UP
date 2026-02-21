@@ -84,7 +84,7 @@ npm run e2e
 npx playwright install chromium
 ```
 
-Скрипт `npm run e2e` автоматически поднимает локальный web-server на `http://localhost:4173` через конфиг Playwright.
+Скрипт `npm run e2e` автоматически поднимает локальный web-server на `http://127.0.0.1:4173` через конфиг Playwright.
 
 Если в окружении заданы прокси-переменные, в `NO_PROXY/no_proxy` должны быть `localhost,127.0.0.1`.
 

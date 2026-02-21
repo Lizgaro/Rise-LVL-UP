@@ -32,16 +32,15 @@ HEAD: `2d6442e`
 - Проверки после batch:
   - `npm run test:run` -> PASS (71/71)
   - `npm run build` -> PASS
-  - `npm run e2e` -> FAIL в текущем sandbox-окружении: loopback `localhost:4173` returns `EPERM`
+  - `npm run e2e` -> PASS (Windows shell, 6/6)
+  - Примечание: в текущем sandbox-shell loopback checks могут падать с `EPERM`; браузерный gate подтвержден в Windows shell.
 
 ## Осталось (vNext, не блокирует MVP)
 
-1. Reliability verification in unrestricted environment:
-   - перепроверить `npm run e2e` вне текущего sandbox, где loopback-сокеты не блокируются.
-2. P2 UX/risk hardening:
+1. P2 UX/risk hardening:
    - offline stress edge cases (idle/restore).
    - storage-protection edge cases.
-3. Гипотеза Telegram-бота (без реализации):
+2. Гипотеза Telegram-бота (без реализации):
    - только внешний канал ввода/напоминаний, web остается source-of-truth.
 
 ## Следующий рабочий цикл (старт заново)
@@ -55,7 +54,7 @@ HEAD: `2d6442e`
    - `npm run test:run`
    - `npm run e2e`
    - `npm run build`
-   - Статус: в процессе (unit/build пройдены, e2e требует прогон вне sandbox loopback-ограничений).
+   - Статус: batch #19 закрыт (unit/build/e2e подтверждены).
 4. После каждого батча обновлять:
    - `docs/progress/current-plan.md`
    - `docs/progress/2026-02-21-master-log.md`
