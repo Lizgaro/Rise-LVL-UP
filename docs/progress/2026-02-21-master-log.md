@@ -104,6 +104,12 @@
 - Updated timer UI with visible phase and countdown:
   - `src/ui/FocusTimerCard.tsx`
 - Updated README timer description for current behavior.
+- Implemented P0 batch #2 (real noise playback):
+  - Replaced state-only noise mock with Web Audio API engine (`white/pink/brown` generation).
+  - Added runtime audio graph start/stop/restart behavior.
+  - Connected noise toggle in store to real playback start/stop.
+- Added/updated noise tests for audio graph creation.
+- Updated README noise description for current behavior.
 - Re-verified after changes:
   - `npm run test:run` -> PASS
   - `npm run build` -> PASS
@@ -111,7 +117,6 @@
 ## In Progress
 - Monitoring issue #1 for Jules response.
 - Executing next P0 items from critical audit checklist:
-  - real noise engine
   - full persistence
   - voice input
 
@@ -119,7 +124,7 @@
 - Run full e2e in environment with required system libs (`libnspr4.so` currently missing).
 - Review Jules output on issue #1 and integrate follow-up changes if needed.
 - Execute remaining P0 checklist from:
-  - `docs/research/2026-02-21-critical-audit-v2.md` (except timer core batch #1)
+  - `docs/research/2026-02-21-critical-audit-v2.md` (except timer core batch #1 and noise engine batch #2)
 - Re-verify tests after each P0 increment:
   - `npm run test:run`
   - `npm run build`

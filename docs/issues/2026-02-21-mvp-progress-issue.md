@@ -91,3 +91,21 @@
 - Full persistence всех доменных сущностей (не только tasks и timer snapshot).
 - Голосовой ввод `speech -> task/goal/habit/plan`.
 - Автоматический `task_missed` с применением штрафов.
+
+---
+
+## Обновление (2026-02-21): P0 batch #2 - Real Noise Engine
+
+### Реализовано
+
+- Модуль `noise-engine` переписан с реальным Web Audio API runtime.
+- Добавлена генерация `white`, `pink`, `brown` noise буферов.
+- Добавлены start/stop/restart сценарии аудио-графа.
+- При выборе типа шума в UI теперь запускается реальное воспроизведение (не только флаг состояния).
+- Добавлен тест на построение audio graph и запуск воспроизведения.
+
+### Осталось (P0)
+
+- Full persistence всех доменных сущностей (не только tasks и timer snapshot).
+- Голосовой ввод `speech -> task/goal/habit/plan`.
+- Автоматический `task_missed` с применением штрафов.

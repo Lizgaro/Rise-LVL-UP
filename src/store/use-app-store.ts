@@ -549,7 +549,11 @@ export function createAppStore() {
 
     setNoiseType: (type) => {
       noiseController.setType(type);
-      if (type === "off") noiseController.stop();
+      if (type === "off") {
+        noiseController.stop();
+      } else {
+        noiseController.start();
+      }
       set((state) => ({
         noise: {
           ...state.noise,
