@@ -414,14 +414,36 @@
 - Ran external PWA microcopy/behavior pass:
   - recommendations logged in `docs/progress/2026-02-21-agent-orchestration-log.md`
 
+## Update (2026-02-22): P1/P2 batch #18 - Update Prompt Copy Tuning + Offline Stress Checks
+- Implemented context-aware update copy rules:
+  - Added module + tests:
+    - `src/core/pwa-update-copy.ts`
+    - `src/core/pwa-update-copy.test.ts`
+  - Update prompt now adapts by context:
+    - normal online idle mode -> actionable update copy
+    - active focus timer -> deferred update copy and disabled action
+    - offline mode -> safe offline copy and disabled action
+    - updating mode -> progress copy
+- Extended offline stress diagnostics:
+  - Added network capability into health checks:
+    - `src/core/health-checks.ts`
+    - `src/core/health-checks.test.ts`
+  - `HealthBanner` now includes explicit `Сеть` status and local-only warning in offline mode.
+- Integrated copy tuning into update UI:
+  - `src/ui/PwaUpdateCard.tsx` now uses `buildPwaUpdateCopy`.
+- Re-verified full quality gate:
+  - `npm run e2e` (Windows PowerShell) -> PASS (6/6)
+  - `npm run test:run` -> PASS (67/67)
+  - `npm run build` -> PASS
+
 ## In Progress
 - No blocking implementation tasks for MVP core.
 
 ## Remaining
 - MVP core scope: completed.
 - Optional vNext backlog (non-blocking):
-  - PWA update card A/B copy tuning (local, no remote analytics).
-  - Offline-first stress checks for long idle sessions.
+  - PWA update card microcopy A/B variants (local-only experimentation).
+  - Offline-first stress checks for long idle sessions and repeated tab restores.
   - Browser coverage hardening for storage-protection UX edge cases.
   - Optional cloud-synced backup workflow (without auth complexity).
   - Onboarding personalization by user scenario (work/study/fitness).

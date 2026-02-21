@@ -275,3 +275,17 @@ Key outputs:
 
 Adoption status:
 - `Partially accepted` (внедрены офлайн-guard и non-blocking card flow; copy tuning отложен в vNext).
+
+### Task R - Update Prompt Microcopy Risk Pass
+
+Instruction sent:
+`Ты UX-практик для PWA. Контекст: у нас есть карточка обновления с кнопкой 'Обновить сейчас' и офлайн-уведомление. Дай 5 коротких рекомендаций для microcopy/поведения update prompt без раздражения пользователя. Только practical bullets.`
+
+Key outputs:
+- Подтверждено, что update prompt должен быть non-blocking и не мешать текущей задаче.
+- Рекомендована контекстность: избегать обновления во время активного ввода/фокус-сессии.
+- Подтвержден offline-guard как обязательный UX safety элемент.
+- Отмечена важность сохранения контекста при применении обновления.
+
+Adoption status:
+- `Accepted` (внедрены context-aware copy rules + offline guard; остаток вынесен в vNext tuning).

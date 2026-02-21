@@ -631,3 +631,30 @@
   - copy-tuning update prompt
   - offline stress checks
   - расширение browser edge-case coverage.
+
+---
+
+## Обновление (2026-02-22): P1/P2 batch #18 - Update Prompt Copy Tuning + Offline Stress Checks
+
+### Реализовано
+
+- Добавлен контекстный copy-tuning update prompt:
+  - `src/core/pwa-update-copy.ts` + `src/core/pwa-update-copy.test.ts`
+  - сценарии: online idle / active timer / offline / updating
+- Добавлены offline stress checks в диагностику окружения:
+  - `src/core/health-checks.ts` + `src/core/health-checks.test.ts`
+  - новый статус `Сеть` в `HealthBanner` с офлайн-предупреждением
+- Интеграция в UI:
+  - `src/ui/PwaUpdateCard.tsx` использует новую copy-логику
+- Полная верификация:
+  - `npm run e2e` PASS (6/6)
+  - `npm run test:run` PASS (67/67)
+  - `npm run build` PASS
+
+### Осталось
+
+- Блокирующих задач по MVP-ядру нет.
+- vNext:
+  - offline stress checks для длительных idle/restore сценариев
+  - storage-protection edge-cases
+  - cloud sync backup (без auth-overkill).

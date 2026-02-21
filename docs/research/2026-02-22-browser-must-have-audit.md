@@ -43,6 +43,8 @@
    - добавлены manifest/service worker/install flow и mobile touch-target улучшения.
 8. PWA update + install telemetry:
    - добавлен update card (`Обновить сейчас` + offline guard) и локальные счетчики установки.
+9. Context-aware update copy + offline checks:
+   - update prompt адаптируется под состояние таймера/сети, HealthBanner показывает статус сети.
 
 ## Практики аналогичных продуктов (что взять, что избегать)
 - Todoist: быстрый capture + минимальный шум в главном экране.

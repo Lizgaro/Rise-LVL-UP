@@ -7,10 +7,11 @@ describe("buildHealthChecks", () => {
       microphoneReady: true,
       audioReady: true,
       indexedDbReady: true,
+      onlineReady: true,
     });
 
     expect(checks.every((check) => check.status === "ready")).toBe(true);
-    expect(checks.map((check) => check.id)).toEqual(["microphone", "audio", "storage"]);
+    expect(checks.map((check) => check.id)).toEqual(["microphone", "audio", "storage", "network"]);
   });
 
   it("reports warnings when capabilities are missing", () => {
@@ -18,11 +19,13 @@ describe("buildHealthChecks", () => {
       microphoneReady: false,
       audioReady: false,
       indexedDbReady: false,
+      onlineReady: false,
     });
 
     expect(checks.every((check) => check.status === "warn")).toBe(true);
     expect(checks[0]?.detail).toContain("недоступ");
     expect(checks[1]?.detail).toContain("недоступ");
     expect(checks[2]?.detail).toContain("недоступ");
+    expect(checks[3]?.detail).toContain("офлайн");
   });
 });

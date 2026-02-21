@@ -1,10 +1,11 @@
-export type HealthCheckId = "microphone" | "audio" | "storage";
+export type HealthCheckId = "microphone" | "audio" | "storage" | "network";
 export type HealthCheckStatus = "ready" | "warn";
 
 export interface RuntimeCapabilities {
   microphoneReady: boolean;
   audioReady: boolean;
   indexedDbReady: boolean;
+  onlineReady: boolean;
 }
 
 export interface HealthCheckItem {
@@ -22,6 +23,7 @@ type RuntimeScope = {
   indexedDB?: unknown;
   navigator?: {
     mediaDevices?: unknown;
+    onLine?: boolean;
   };
 };
 
@@ -36,11 +38,13 @@ export function detectRuntimeCapabilities(scope?: RuntimeScope): RuntimeCapabili
   const hasMediaDevices = Boolean(runtime?.navigator?.mediaDevices);
   const hasAudioApi = Boolean(runtime?.AudioContext || runtime?.webkitAudioContext);
   const hasIndexedDb = Boolean(runtime?.indexedDB);
+  const onlineReady = runtime?.navigator?.onLine !== false;
 
   return {
     microphoneReady: hasSpeechApi || hasMediaDevices,
     audioReady: hasAudioApi,
     indexedDbReady: hasIndexedDb,
+    onlineReady,
   };
 }
 
@@ -65,6 +69,14 @@ export function buildHealthChecks(capabilities: RuntimeCapabilities): HealthChec
       title: "Хранилище",
       status: capabilities.indexedDbReady ? "ready" : "warn",
       detail: capabilities.indexedDbReady ? "IndexedDB доступна" : "IndexedDB недоступна",
+    },
+    {
+      id: "network",
+      title: "Сеть",
+      status: capabilities.onlineReady ? "ready" : "warn",
+      detail: capabilities.onlineReady
+        ? "Онлайн-режим доступен"
+        : "Вы офлайн: работают только локальные данные",
     },
   ];
 }
