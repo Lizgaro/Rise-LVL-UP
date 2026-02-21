@@ -2,6 +2,7 @@ import { FocusTimerCard } from "./FocusTimerCard";
 import { DayPulseCard } from "./DayPulseCard";
 import { GoalsCard } from "./GoalsCard";
 import { HabitsCard } from "./HabitsCard";
+import { HealthBanner } from "./HealthBanner";
 import { NoiseCard } from "./NoiseCard";
 import { PlansCard } from "./PlansCard";
 import { ProgressCard } from "./ProgressCard";
@@ -29,6 +30,7 @@ export function AppShell() {
         </div>
       ) : null}
 
+      <HealthBanner />
       <DayPulseCard />
       <TodayFocusCard />
       <FocusTimerCard />

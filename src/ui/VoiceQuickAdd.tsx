@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { parseVoiceInput } from "../voice/intent-parser";
+import { parseVoiceInput, type VoiceIntent } from "../voice/intent-parser";
 import { useAppStore } from "../store/use-app-store";
+import { buildVoiceIntentPreview } from "../voice/intent-preview";
 
 type RecognitionResultItem = {
   transcript: string;
@@ -46,8 +47,10 @@ export function VoiceQuickAdd() {
   const [isListening, setIsListening] = useState(false);
   const [lastTranscript, setLastTranscript] = useState("");
   const [voiceMessage, setVoiceMessage] = useState("");
+  const [pendingIntent, setPendingIntent] = useState<VoiceIntent | null>(null);
 
   const isSupported = Boolean(getRecognitionCtor());
+  const pendingPreview = pendingIntent ? buildVoiceIntentPreview(pendingIntent) : null;
 
   useEffect(() => {
     return () => {
@@ -55,9 +58,7 @@ export function VoiceQuickAdd() {
     };
   }, []);
 
-  const applyVoiceIntent = async (speechText: string) => {
-    const parsed = parseVoiceInput(speechText);
-
+  const applyVoiceIntent = async (parsed: VoiceIntent) => {
     if (parsed.kind === "goal") {
       addGoal(parsed.title, parsed.targetCount);
       setVoiceMessage(`Добавлена цель: ${parsed.title}`);
@@ -82,6 +83,17 @@ export function VoiceQuickAdd() {
     setVoiceMessage("Не удалось распознать команду");
   };
 
+  const confirmPendingIntent = async () => {
+    if (!pendingIntent) return;
+    await applyVoiceIntent(pendingIntent);
+    setPendingIntent(null);
+  };
+
+  const cancelPendingIntent = () => {
+    setPendingIntent(null);
+    setVoiceMessage("Команда отменена");
+  };
+
   const startListening = () => {
     const Recognition = getRecognitionCtor();
     if (!Recognition) {
@@ -99,10 +111,20 @@ export function VoiceQuickAdd() {
       const transcript = event.results[0]?.[0]?.transcript?.trim() ?? "";
       setLastTranscript(transcript);
       if (!transcript) {
+        setPendingIntent(null);
         setVoiceMessage("Пустой ввод, попробуй еще раз");
         return;
       }
-      void applyVoiceIntent(transcript);
+
+      const parsed = parseVoiceInput(transcript);
+      if (parsed.kind === "unknown") {
+        setPendingIntent(null);
+        setVoiceMessage("Не удалось распознать команду");
+        return;
+      }
+
+      setPendingIntent(parsed);
+      setVoiceMessage("Проверь распознавание и подтверди");
     };
 
     recognition.onerror = (event) => {
@@ -119,6 +141,7 @@ export function VoiceQuickAdd() {
     };
 
     setVoiceMessage("");
+    setPendingIntent(null);
     setIsListening(true);
     recognition.start();
   };
@@ -129,11 +152,37 @@ export function VoiceQuickAdd() {
         data-testid="voice-add-btn"
         type="button"
         onClick={startListening}
-        disabled={!isSupported || isListening}
+        disabled={!isSupported || isListening || Boolean(pendingIntent)}
       >
         {isListening ? "Слушаю..." : "Голосовой ввод"}
       </button>
       {!isSupported ? <span className="muted">В этом браузере голосовой ввод недоступен</span> : null}
+      {pendingPreview ? (
+        <div className="voice-preview" data-testid="voice-preview">
+          <strong>{pendingPreview.title}</strong>
+          <p className="muted">{pendingPreview.subtitle}</p>
+          <div className="row compact">
+            {pendingPreview.chips.map((chip) => (
+              <span key={chip} className="chip">
+                {chip}
+              </span>
+            ))}
+          </div>
+          <div className="row compact">
+            <button
+              data-testid="voice-confirm-btn"
+              type="button"
+              onClick={() => void confirmPendingIntent()}
+              disabled={!pendingPreview.canConfirm}
+            >
+              Подтвердить
+            </button>
+            <button data-testid="voice-cancel-btn" type="button" onClick={cancelPendingIntent}>
+              Отменить
+            </button>
+          </div>
+        </div>
+      ) : null}
       {lastTranscript ? <span className="muted">Речь: {lastTranscript}</span> : null}
       {voiceMessage ? <span className="muted">{voiceMessage}</span> : null}
     </div>

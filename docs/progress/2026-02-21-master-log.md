@@ -182,6 +182,24 @@
   - `npm run test:run -- src/ui/AppShell.test.tsx` -> PASS
   - `npm run test:run` -> PASS
   - `npm run build` -> PASS
+- Implemented P1/P2 batch #6 (voice confirmation + health banner):
+  - Added `Готовность окружения` card with runtime checks:
+    - microphone support
+    - Web Audio support
+    - IndexedDB support
+  - Added voice quick-add confirmation flow:
+    - preview block for recognized command
+    - explicit `Подтвердить` / `Отменить`
+  - Added supporting modules and tests:
+    - `src/core/health-checks.ts` + `src/core/health-checks.test.ts`
+    - `src/voice/intent-preview.ts` + `src/voice/intent-preview.test.ts`
+  - Extended shell UI test for `Готовность окружения`.
+- Ran Gemini subagent microcopy pass for voice/health texts:
+  - logged in `docs/progress/2026-02-21-agent-orchestration-log.md`
+- Re-verified after P1/P2 batch #6:
+  - `npm run test:run -- src/ui/AppShell.test.tsx src/core/health-checks.test.ts src/voice/intent-preview.test.ts` -> PASS
+  - `npm run test:run` -> PASS
+  - `npm run build` -> PASS
 
 ## In Progress
 - Monitoring issue #1 for Jules response.

@@ -104,6 +104,38 @@ body {
   font-size: 1.04rem;
 }
 
+.health-card {
+  border-color: #d5dee9;
+  background: linear-gradient(180deg, #ffffff 0%, #f7fafd 100%);
+}
+
+.health-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.health-pill {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 9px;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.health-pill.ready {
+  border-color: #c9e8d3;
+  background: #f4fff7;
+}
+
+.health-pill.warn {
+  border-color: #f0d5a8;
+  background: #fff9f0;
+}
+
+.health-pill p {
+  margin: 4px 0 0;
+}
+
 .card h2,
 .card h3 {
   margin-top: 0;
@@ -143,6 +175,28 @@ body {
   border-radius: 9px;
   padding: 8px;
   background: rgba(255, 255, 255, 0.94);
+}
+
+.voice-preview {
+  width: 100%;
+  border: 1px solid #efbfd0;
+  border-radius: 10px;
+  padding: 8px;
+  background: linear-gradient(180deg, #fff9fc 0%, #fff2f8 100%);
+}
+
+.voice-preview p {
+  margin: 4px 0;
+}
+
+.chip {
+  display: inline-block;
+  border: 1px solid #e6b8ca;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 0.82rem;
+  color: #4f2240;
+  background: #fff;
 }
 
 .done {
@@ -267,7 +321,8 @@ progress::-moz-progress-bar {
   }
 
   .grid,
-  .pulse-grid {
+  .pulse-grid,
+  .health-grid {
     grid-template-columns: 1fr;
   }
 }

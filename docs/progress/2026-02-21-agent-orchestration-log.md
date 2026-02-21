@@ -102,6 +102,19 @@ Key outputs:
 Adoption status:
 - `Partially accepted` (используется как вход в следующий P1/P2 backlog; элементы, выходящие за MVP, отложены).
 
+### Task H - Russian Microcopy for Voice Confirm + Health Warnings
+
+Instruction sent:
+`Ты UX-редактор для русского productivity MVP. Нужны короткие тексты (до 7 слов) для: 1) заголовок voice-preview, 2) confirm button, 3) cancel button, 4) warning для микрофона, 5) warning для IndexedDB. Дай по 3 варианта и отметь лучший.`
+
+Key outputs:
+- Даны короткие варианты microcopy для voice-preview и кнопок confirm/cancel.
+- Даны предупреждения для микрофона и IndexedDB с нейтральным тоном.
+- Рекомендован лучший вариант для каждого пункта.
+
+Adoption status:
+- `Partially accepted` (использованы как ориентир формулировок для текущего P1/P2 шага).
+
 ## Agent: GitHub @Jules
 
 Status:
