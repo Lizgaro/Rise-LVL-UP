@@ -16,6 +16,7 @@ test.describe("MVP core flows", () => {
 
   test("day priorities are limited to three", async ({ page }) => {
     await page.goto("/");
+    await page.getByTestId("workspace-view-select").selectOption("plan");
 
     const taskInput = page.getByTestId("task-input-field");
     for (const title of ["Задача 1", "Задача 2", "Задача 3", "Задача 4"]) {
@@ -37,7 +38,7 @@ test.describe("MVP core flows", () => {
   test("focus session gives xp", async ({ page }) => {
     await page.goto("/");
 
-    const xpText = page.getByText(/Опыт \(XP\): \d+/).first();
+    const xpText = page.getByText(/XP сегодня: \d+/).first();
     const before = Number((await xpText.textContent())?.replace(/\D+/g, "") ?? "0");
 
     await page.getByTestId("start-focus-btn").click();
@@ -49,10 +50,12 @@ test.describe("MVP core flows", () => {
 
   test("habit relapse creates recovery quest", async ({ page }) => {
     await page.goto("/");
+    await page.getByTestId("workspace-view-select").selectOption("plan");
 
     await page.getByTestId("habit-input-field").fill("Без сигарет");
     await page.getByTestId("habit-submit-btn").click();
     await page.getByTestId("habit-relapse-btn").first().click();
+    await page.getByTestId("workspace-view-select").selectOption("all");
 
     await expect(page.getByText("Активен recovery-квест")).toBeVisible();
   });

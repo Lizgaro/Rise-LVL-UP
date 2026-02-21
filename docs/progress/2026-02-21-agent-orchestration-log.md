@@ -185,3 +185,55 @@ Notes:
   - fetched PR branch for comparison with `feat/mvp-core`
   - PR changes are stale and superseded by current implementation
 - Current action: keep issue thread as async feedback channel, no merge from PR #2 required.
+
+### Task L - Principal PM Pre-Release Ruthless Audit
+
+Instruction sent:
+`Ты Principal Product Manager. Контекст: локальный single-user productivity app Rise LVL UP (задачи/планы/цели/привычки/recovery/pomodoro/noise/voice/RPG). Текущее состояние: все тесты зелёные, есть минималистичный UI на русском, focus mode, backup export/import. Задача: дать ruthless audit как для pre-release. Формат: 1) топ-10 must-have улучшений (без косметики), 2) MoSCoW приоритизация (MUST/SHOULD/COULD), 3) критерии приёмки для каждого MUST, 4) анти-цели (что не делать). Добавь лучшие практики аналогичных продуктов (Todoist, TickTick, Sunsama, Habitica, Streaks). Кратко и практично.`
+
+Key outputs:
+- Подсвечены high-impact приоритеты: core loop, burnout protection, IA-фокус, data safety.
+- Даны MoSCoW-акценты с анти-целями против scope creep.
+- Подтверждено, что основная ценность — "focus loop", а не расширение в сложную экосистему.
+
+Adoption status:
+- `Partially accepted` (взяты только элементы, которые можно внедрить без раздувания MVP).
+
+### Task M - Senior UX Cognitive Load Audit
+
+Instruction sent:
+`Ты Senior UX Research + UX Writer. Контекст тот же. Проведи UX-аудит одной страницы с множеством карточек. Выдай: 1) 7 главных UX-рисков для когнитивной нагрузки, 2) 7 точечных решений с максимальным impact (без редизайна ради редизайна), 3) рекомендуемая IA (порядок блоков и progressive disclosure), 4) русские microcopy-паттерны для мотивации без токсичности. Укажи практики аналогов (Sunsama, Todoist, Habitica).`
+
+Key outputs:
+- Подтвержден риск `dashboard anxiety` и смешения режимов `plan/do/review`.
+- Рекомендован явный mode-switch экрана и progressive disclosure.
+- Даны нетоксичные microcopy-паттерны поддержки после провалов.
+
+Adoption status:
+- `Accepted` (использовано для реализации рабочих экранов и дефолта на фокус-режим).
+
+### Task N - Behavioral Recovery and Relapse Protocol Audit
+
+Instruction sent:
+`Ты Behavioral Scientist (habits, relapse, motivation). Контекст: продуктивность + RPG + штрафы. Дай строгий аудит: 1) какие механики могут демотивировать и почему, 2) must-have guardrails чтобы не сорвать пользователя после провала, 3) лучший протокол 'срыв/пропуск' (24ч/72ч), 4) 5 метрик поведения для оценки retention. Формат — actionable правила для реализации в коде.`
+
+Key outputs:
+- Подтвержден риск демотивации при штрафах без recovery-моста.
+- Рекомендован `supportive comeback loop` вместо жесткого наказания.
+- Предложены guardrails и метрики восстановления после срыва.
+
+Adoption status:
+- `Accepted` (реализован recovery XP-буст и consumption logic для первых действий после relapse).
+
+### Task O - Staff QA/Reliability Production Readiness Audit
+
+Instruction sent:
+`Ты Staff QA + Reliability Engineer. Контекст: React+Zustand+Dexie+Playwright app. Нужен production-readiness audit. Выдай: 1) 10 главных технических рисков (данные/браузеры/перф/доступность/тестирование), 2) must-have fixes перед активным ежедневным использованием, 3) тест-стратегия regression suite (unit+integration+e2e), 4) какие проверки добавить в CI в первую очередь. Без воды, только high-impact.`
+
+Key outputs:
+- Подсвечены риски local-first и гидратации состояния.
+- Подтверждена критичность стабильного e2e и явной bootstrap-загрузки.
+- Даны рекомендации по очередности CI проверок и regression-гейтам.
+
+Adoption status:
+- `Partially accepted` (в этой итерации внедрен bootstrap safety и сохранен full regression gate; CI/persistent-storage вынесены в vNext).

@@ -505,3 +505,34 @@
   - PWA/mobile-first упаковка
   - облачный sync для бэкапа без полноценного auth
   - мини-онбординг первого запуска.
+
+---
+
+## Обновление (2026-02-22): P1/P2 batch #14 - Must-Have Browser Audit + High-Impact Fixes
+
+### Реализовано
+
+- Проведен повторный browser-first аудит с прогоном критичных сценариев:
+  - `npm run e2e` PASS (6/6)
+  - `npm run test:run` PASS (47/47)
+  - `npm run build` PASS
+- По синтезу PM/UX/Behavioral/QA субагентов внедрены только must-have изменения:
+  - `AppShell`: рабочие экраны `Фокус` / `Планирование` / `Ревью` / `Все`
+  - default экран -> `Фокус` для снижения перегрузки
+  - `progress-rules`: recovery-буст после срыва с поэтапным расходом зарядов
+  - `App`: безопасный bootstrap, полный UI только после `loadInitial`
+- Адаптирован e2e под новую IA:
+  - в сценариях добавлено явное переключение рабочего экрана
+- Обновлены unit-тесты:
+  - `src/core/progress-rules.test.ts`
+  - `src/ui/AppShell.test.tsx`
+- Добавлен отдельный аудит-документ:
+  - `docs/research/2026-02-22-browser-must-have-audit.md`
+
+### Осталось
+
+- Блокирующих задач по MVP-ядру нет.
+- vNext (не блокирует текущий релиз):
+  - PWA/mobile-first упаковка
+  - Persistent Storage API (защита local data)
+  - лёгкий onboarding первого запуска.

@@ -310,6 +310,30 @@
   - Logged risk/vNext recommendations in:
     - `docs/progress/2026-02-21-agent-orchestration-log.md`
 
+## Update (2026-02-22): P1/P2 batch #14 - Must-Have Browser Audit + High-Impact Fixes
+- Ran browser-first re-audit and verification:
+  - `npm run e2e` (Windows PowerShell) -> PASS (6/6)
+  - `npm run test:run` -> PASS (47/47)
+  - `npm run build` -> PASS
+- Synthesized 4 external subagents (PM/UX/Behavioral/QA) and extracted only must-have priorities.
+- Implemented high-impact product fixes:
+  - Workspace context switch in `AppShell`:
+    - `Фокус` / `Планирование` / `Ревью` / `Все`
+    - default = `Фокус` to reduce dashboard overload.
+  - Behavioral recovery boost in `progress-rules`:
+    - relapse now reliably activates recovery charges
+    - first positive actions after relapse get boosted XP
+    - boost charges are consumed progressively.
+  - Safe local-first bootstrap in `App`:
+    - full UI is rendered after `loadInitial` completion.
+- Stabilized tests for new IA:
+  - updated `e2e/mvp-core.spec.ts` to explicitly switch workspace mode where needed.
+  - extended unit tests:
+    - `src/core/progress-rules.test.ts`
+    - `src/ui/AppShell.test.tsx`
+- Added dedicated audit document:
+  - `docs/research/2026-02-22-browser-must-have-audit.md`
+
 ## In Progress
 - No blocking implementation tasks for MVP core.
 
@@ -317,8 +341,9 @@
 - MVP core scope: completed.
 - Optional vNext backlog (non-blocking):
   - PWA packaging and mobile-first polish.
+  - Persistent Storage API flow to harden local data retention.
   - Optional cloud-synced backup workflow (without auth complexity).
   - Lightweight first-run onboarding.
 
 ## Next Step
-- Start separate vNext planning iteration based on Gemini risk list and user prioritization.
+- Start separate vNext planning iteration based on browser audit priorities and user prioritization.

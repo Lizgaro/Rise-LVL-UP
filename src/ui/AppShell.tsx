@@ -13,11 +13,14 @@ import { TaskInboxCard } from "./TaskInboxCard";
 import { TodayFocusCard } from "./TodayFocusCard";
 import { useAppStore } from "../store/use-app-store";
 
+type WorkspaceView = "focus" | "plan" | "review" | "all";
+
 export function AppShell() {
   const uiError = useAppStore((state) => state.uiError);
   const clearUiError = useAppStore((state) => state.clearUiError);
   const timerRunning = useAppStore((state) => state.timer.isRunning);
   const [focusModeEnabled, setFocusModeEnabled] = useState(false);
+  const [workspaceView, setWorkspaceView] = useState<WorkspaceView>("focus");
   const focusLayout = shouldUseFocusLayout(focusModeEnabled, timerRunning);
 
   return (
@@ -47,10 +50,29 @@ export function AppShell() {
           />
           Включать минимальный экран во время таймера
         </label>
+        <label className="check">
+          Рабочий экран
+          <select
+            data-testid="workspace-view-select"
+            value={workspaceView}
+            onChange={(e) => setWorkspaceView(e.target.value as WorkspaceView)}
+          >
+            <option value="focus">Фокус</option>
+            <option value="plan">Планирование</option>
+            <option value="review">Ревью</option>
+            <option value="all">Все</option>
+          </select>
+        </label>
         <p className="muted">
           {focusLayout
             ? "Активен минимальный режим: оставлены только ключевые блоки."
-            : "Полный режим интерфейса."}
+            : workspaceView === "focus"
+              ? "Экран фокуса: только ключевые блоки выполнения."
+              : workspaceView === "plan"
+                ? "Экран планирования: входящие, планы, цели и привычки."
+                : workspaceView === "review"
+                  ? "Экран ревью: итоги и корректировка курса."
+                  : "Полный режим интерфейса."}
         </p>
       </section>
 
@@ -63,17 +85,49 @@ export function AppShell() {
         </>
       ) : (
         <>
-          <HealthBanner />
-          <DayPulseCard />
-          <TodayFocusCard />
-          <FocusTimerCard />
-          <TaskInboxCard />
-          <PlansCard />
-          <ReviewCard />
-          <GoalsCard />
-          <HabitsCard />
-          <ProgressCard />
-          <NoiseCard />
+          {workspaceView === "focus" ? (
+            <>
+              <DayPulseCard />
+              <TodayFocusCard />
+              <FocusTimerCard />
+              <TaskInboxCard />
+              <NoiseCard />
+            </>
+          ) : null}
+
+          {workspaceView === "plan" ? (
+            <>
+              <HealthBanner />
+              <TaskInboxCard />
+              <PlansCard />
+              <GoalsCard />
+              <HabitsCard />
+            </>
+          ) : null}
+
+          {workspaceView === "review" ? (
+            <>
+              <DayPulseCard />
+              <ReviewCard />
+              <ProgressCard />
+            </>
+          ) : null}
+
+          {workspaceView === "all" ? (
+            <>
+              <HealthBanner />
+              <DayPulseCard />
+              <TodayFocusCard />
+              <FocusTimerCard />
+              <TaskInboxCard />
+              <PlansCard />
+              <ReviewCard />
+              <GoalsCard />
+              <HabitsCard />
+              <ProgressCard />
+              <NoiseCard />
+            </>
+          ) : null}
         </>
       )}
     </main>

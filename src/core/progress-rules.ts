@@ -79,6 +79,19 @@ function applyPositiveXp(
   };
 }
 
+function isPositiveEvent(event: DomainEvent): boolean {
+  switch (event.type) {
+    case "task_done":
+    case "day_priority_done":
+    case "goal_step_done":
+    case "focus_completed":
+    case "habit_done":
+      return true;
+    default:
+      return false;
+  }
+}
+
 function canLevelDown(profile: RPGProfile, now: number): boolean {
   if (profile.level <= 1) return false;
   if (!profile.lastLevelDownAt) return true;
@@ -99,12 +112,13 @@ function applyNegativeXp(
     next.level -= 1;
     next.lastLevelDownAt = now;
     next.xpInLevel = Math.max(0, xpNeedForLevel(next.level) + next.xpInLevel);
-
-    if (event.type === "habit_relapse") {
-      next.recoveryBoostActionsRemaining = RECOVERY_RULES.bonusActions;
-    }
   } else if (next.xpInLevel < 0) {
     next.xpInLevel = 0;
+  }
+
+  if (event.type === "habit_relapse") {
+    const currentBoost = next.recoveryBoostActionsRemaining ?? 0;
+    next.recoveryBoostActionsRemaining = Math.max(currentBoost, RECOVERY_RULES.bonusActions);
   }
 
   return next;
@@ -113,9 +127,21 @@ function applyNegativeXp(
 export function applyEvent(profile: RPGProfile, event: DomainEvent): RPGProfile {
   const safeProfile = normalizeProfile(profile);
   const now = getNow(event);
-  const delta = getEventXp(event);
+  const baseDelta = getEventXp(event);
 
-  if (delta > 0) return applyPositiveXp(safeProfile, delta, now);
-  if (delta < 0) return applyNegativeXp(safeProfile, delta, event, now);
+  if (baseDelta > 0) {
+    const boostCharges = safeProfile.recoveryBoostActionsRemaining ?? 0;
+    const hasRecoveryBoost = boostCharges > 0 && isPositiveEvent(event);
+    const boostedDelta = hasRecoveryBoost
+      ? Math.max(baseDelta, Math.round(baseDelta * RECOVERY_RULES.bonusMultiplier))
+      : baseDelta;
+    const next = applyPositiveXp(safeProfile, boostedDelta, now);
+    if (!hasRecoveryBoost) return next;
+    return {
+      ...next,
+      recoveryBoostActionsRemaining: Math.max(0, boostCharges - 1),
+    };
+  }
+  if (baseDelta < 0) return applyNegativeXp(safeProfile, baseDelta, event, now);
   return safeProfile;
 }
