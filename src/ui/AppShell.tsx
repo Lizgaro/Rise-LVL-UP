@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { shouldUseFocusLayout } from "../core/focus-mode";
 import { markOnboardingDone, shouldShowOnboarding } from "../core/onboarding";
+import { useAppStore } from "../store/use-app-store";
+import { DashboardLayout } from "./DashboardLayout";
 import { FocusTimerCard } from "./FocusTimerCard";
 import { DayPulseCard } from "./DayPulseCard";
 import { GoalsCard } from "./GoalsCard";
@@ -15,9 +17,8 @@ import { PwaUpdateCard } from "./PwaUpdateCard";
 import { ReviewCard } from "./ReviewCard";
 import { TaskInboxCard } from "./TaskInboxCard";
 import { TodayFocusCard } from "./TodayFocusCard";
-import { useAppStore } from "../store/use-app-store";
+import type { SidebarTab } from "./Sidebar";
 
-type WorkspaceView = "focus" | "plan" | "review" | "all";
 type UiTheme = "core-light" | "jules-light" | "jules-ronin";
 const THEME_STORAGE_KEY = "rise-lvl-up:ui-theme-v1";
 
@@ -34,7 +35,7 @@ export function AppShell() {
   const timerRunning = useAppStore((state) => state.timer.isRunning);
   const [showOnboarding, setShowOnboarding] = useState(() => shouldShowOnboarding());
   const [focusModeEnabled, setFocusModeEnabled] = useState(false);
-  const [workspaceView, setWorkspaceView] = useState<WorkspaceView>("focus");
+  const [activeTab, setActiveTab] = useState<SidebarTab>("dashboard");
   const [theme, setTheme] = useState<UiTheme>(() => getInitialTheme());
   const focusLayout = shouldUseFocusLayout(focusModeEnabled, timerRunning);
 
@@ -44,37 +45,122 @@ export function AppShell() {
     window.localStorage.setItem(THEME_STORAGE_KEY, theme);
   }, [theme]);
 
-  return (
-    <main className="page">
-      <header className="header">
-        <h1>Rise LVL UP</h1>
-        <p className="muted">Минималистичный личный трекер продуктивности</p>
-      </header>
+  const renderCurrentTab = () => {
+    if (focusLayout) {
+      return (
+        <>
+          <DayPulseCard />
+          <TodayFocusCard />
+          <FocusTimerCard />
+          <NoiseCard />
+        </>
+      );
+    }
 
-      {showOnboarding ? (
-        <section className="card onboarding-card" data-testid="onboarding-card">
-          <h2>Быстрый старт (1 минута)</h2>
-          <ol className="onboarding-list">
-            <li>Выбери рабочий экран: `Фокус`, `Планирование` или `Ревью`.</li>
-            <li>Добавь 1-3 задачи и отметь приоритет дня.</li>
-            <li>Запусти таймер и закрой первую фокус-сессию.</li>
-          </ol>
-          <button
-            data-testid="onboarding-complete-btn"
-            type="button"
-            onClick={() => {
-              markOnboardingDone();
-              setShowOnboarding(false);
-            }}
-          >
-            Понятно, начинаю
-          </button>
+    if (activeTab === "dashboard") {
+      return (
+        <>
+          {showOnboarding ? (
+            <section className="card onboarding-card" data-testid="onboarding-card">
+              <h2>Быстрый старт (1 минута)</h2>
+              <ol className="onboarding-list">
+                <li>Запиши задачу в голос или в список.</li>
+                <li>Переведи ее в `Фокус дня` или `Приоритет недели/месяца`.</li>
+                <li>Запусти таймер и закрой первую сессию.</li>
+              </ol>
+              <button
+                data-testid="onboarding-complete-btn"
+                type="button"
+                onClick={() => {
+                  markOnboardingDone();
+                  setShowOnboarding(false);
+                }}
+              >
+                Понятно, начинаю
+              </button>
+            </section>
+          ) : null}
+          <PwaInstallCard />
+          <PwaUpdateCard />
+          <DayPulseCard />
+          <TodayFocusCard />
+          <FocusTimerCard />
+          <PlansCard />
+          <PriorityBoardsCard />
+        </>
+      );
+    }
+
+    if (activeTab === "tasks") {
+      return (
+        <>
+          <TaskInboxCard />
+          <PlansCard />
+          <PriorityBoardsCard />
+        </>
+      );
+    }
+
+    if (activeTab === "goals") {
+      return (
+        <>
+          <GoalsCard />
+          <HabitsCard />
+          <PriorityBoardsCard />
+        </>
+      );
+    }
+
+    if (activeTab === "review") {
+      return (
+        <>
+          <ReviewCard />
+          <ProgressCard />
+          <DayPulseCard />
+        </>
+      );
+    }
+
+    return (
+      <>
+        <section className="card focus-mode-card">
+          <h2>Настройки</h2>
+          <label className="check">
+            <input
+              data-testid="focus-mode-toggle"
+              type="checkbox"
+              checked={focusModeEnabled}
+              onChange={(e) => setFocusModeEnabled(e.target.checked)}
+            />
+            Включать минимальный экран во время таймера
+          </label>
+          <label className="check">
+            Тема
+            <select
+              className="theme-switch"
+              data-testid="theme-select"
+              value={theme}
+              onChange={(e) => setTheme(e.target.value as UiTheme)}
+            >
+              <option value="core-light">Core Light</option>
+              <option value="jules-light">Jules White</option>
+              <option value="jules-ronin">Jules Ronin Dark</option>
+            </select>
+          </label>
+          <p className="muted">
+            {focusLayout
+              ? "Активен минимальный режим: оставлены только ключевые блоки."
+              : "Выбери тему интерфейса и режим работы таймера."}
+          </p>
         </section>
-      ) : null}
+        <HealthBanner />
+        <NoiseCard />
+      </>
+    );
+  };
 
-      <PwaInstallCard />
-      <PwaUpdateCard />
-
+  return (
+    <DashboardLayout activeTab={activeTab} onTabChange={setActiveTab} minimalMode={focusLayout}>
       {uiError ? (
         <div className="error" data-testid="ui-error-message">
           <span>{uiError}</span>
@@ -83,113 +169,7 @@ export function AppShell() {
           </button>
         </div>
       ) : null}
-
-      <section className="card focus-mode-card">
-        <h2>Режим фокуса</h2>
-        <label className="check">
-          <input
-            data-testid="focus-mode-toggle"
-            type="checkbox"
-            checked={focusModeEnabled}
-            onChange={(e) => setFocusModeEnabled(e.target.checked)}
-          />
-          Включать минимальный экран во время таймера
-        </label>
-        <label className="check">
-          Рабочий экран
-          <select
-            data-testid="workspace-view-select"
-            value={workspaceView}
-            onChange={(e) => setWorkspaceView(e.target.value as WorkspaceView)}
-          >
-            <option value="focus">Фокус</option>
-            <option value="plan">Планирование</option>
-            <option value="review">Ревью</option>
-            <option value="all">Все</option>
-          </select>
-        </label>
-        <label className="check">
-          Тема
-          <select
-            className="theme-switch"
-            data-testid="theme-select"
-            value={theme}
-            onChange={(e) => setTheme(e.target.value as UiTheme)}
-          >
-            <option value="core-light">Core Light</option>
-            <option value="jules-light">Jules White</option>
-            <option value="jules-ronin">Jules Ronin Dark</option>
-          </select>
-        </label>
-        <p className="muted">
-          {focusLayout
-            ? "Активен минимальный режим: оставлены только ключевые блоки."
-            : workspaceView === "focus"
-              ? "Экран фокуса: только ключевые блоки выполнения."
-              : workspaceView === "plan"
-                ? "Экран планирования: входящие, планы, цели и привычки."
-                : workspaceView === "review"
-                  ? "Экран ревью: итоги и корректировка курса."
-                  : "Полный режим интерфейса."}
-        </p>
-      </section>
-
-      {focusLayout ? (
-        <>
-          <DayPulseCard />
-          <TodayFocusCard />
-          <FocusTimerCard />
-          <NoiseCard />
-        </>
-      ) : (
-        <>
-          {workspaceView === "focus" ? (
-            <>
-              <DayPulseCard />
-              <TodayFocusCard />
-              <FocusTimerCard />
-              <TaskInboxCard />
-              <NoiseCard />
-            </>
-          ) : null}
-
-          {workspaceView === "plan" ? (
-            <>
-              <HealthBanner />
-              <TaskInboxCard />
-              <PlansCard />
-              <PriorityBoardsCard />
-              <GoalsCard />
-              <HabitsCard />
-            </>
-          ) : null}
-
-          {workspaceView === "review" ? (
-            <>
-              <DayPulseCard />
-              <ReviewCard />
-              <ProgressCard />
-            </>
-          ) : null}
-
-          {workspaceView === "all" ? (
-            <>
-              <HealthBanner />
-              <DayPulseCard />
-              <TodayFocusCard />
-              <FocusTimerCard />
-              <TaskInboxCard />
-              <PlansCard />
-              <PriorityBoardsCard />
-              <ReviewCard />
-              <GoalsCard />
-              <HabitsCard />
-              <ProgressCard />
-              <NoiseCard />
-            </>
-          ) : null}
-        </>
-      )}
-    </main>
+      {renderCurrentTab()}
+    </DashboardLayout>
   );
 }

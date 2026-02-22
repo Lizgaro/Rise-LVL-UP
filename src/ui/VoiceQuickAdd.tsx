@@ -29,6 +29,10 @@ type RecognitionLike = {
 
 type RecognitionCtor = new () => RecognitionLike;
 
+type VoiceQuickAddProps = {
+  variant?: "inline" | "dock";
+};
+
 function getRecognitionCtor(): RecognitionCtor | undefined {
   if (typeof window === "undefined") return undefined;
   const scope = window as unknown as {
@@ -38,7 +42,7 @@ function getRecognitionCtor(): RecognitionCtor | undefined {
   return scope.SpeechRecognition ?? scope.webkitSpeechRecognition;
 }
 
-export function VoiceQuickAdd() {
+export function VoiceQuickAdd({ variant = "inline" }: VoiceQuickAddProps) {
   const tasks = useAppStore((state) => state.tasks);
   const dayPlan = useAppStore((state) => state.dayPlan);
   const addTask = useAppStore((state) => state.addTask);
@@ -183,6 +187,70 @@ export function VoiceQuickAdd() {
     setIsListening(true);
     recognition.start();
   };
+
+  if (variant === "dock") {
+    return (
+      <div className="voice-dock" data-testid="voice-dock">
+        <button
+          className={`voice-dock-mic ${isListening ? "active" : ""}`}
+          data-testid="voice-add-btn"
+          type="button"
+          onClick={startListening}
+          disabled={!isSupported || isListening || Boolean(pendingIntent)}
+          aria-label="Голосовой ввод"
+        >
+          <span className="material-symbols-outlined">{isListening ? "mic" : "mic_none"}</span>
+        </button>
+        <div className="voice-dock-content">
+          <p className="voice-dock-title">
+            {pendingPreview
+              ? pendingPreview.title
+              : lastTranscript
+                ? `"${lastTranscript}"`
+                : voiceMessage || "Скажи задачу, цель или команду"}
+          </p>
+          <p className="muted voice-dock-subtitle">
+            {pendingPreview
+              ? pendingPreview.subtitle
+              : isAiEnabled
+                ? "AI: Gemini 3 Flash"
+                : "AI: fallback (локальный парсер)"}
+          </p>
+          {pendingPreview ? (
+            <div className="row compact">
+              {pendingPreview.chips.map((chip) => (
+                <span key={chip} className="chip">
+                  {chip}
+                </span>
+              ))}
+            </div>
+          ) : null}
+          {!isSupported ? <p className="muted">В этом браузере голосовой ввод недоступен</p> : null}
+        </div>
+        <div className="voice-dock-actions">
+          {pendingPreview ? (
+            <>
+              <button
+                data-testid="voice-confirm-btn"
+                type="button"
+                onClick={() => void confirmPendingIntent()}
+                disabled={!pendingPreview.canConfirm}
+              >
+                Подтвердить
+              </button>
+              <button data-testid="voice-cancel-btn" type="button" onClick={cancelPendingIntent}>
+                Отмена
+              </button>
+            </>
+          ) : (
+            <button type="button" onClick={startListening} disabled={!isSupported || isListening}>
+              {isListening ? "Слушаю..." : "Записать"}
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="row">

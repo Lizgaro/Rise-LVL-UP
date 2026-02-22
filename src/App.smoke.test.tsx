@@ -3,8 +3,9 @@ import { renderToStaticMarkup } from "react-dom/server";
 import App from "./App";
 
 describe("App smoke", () => {
-  it("renders app title in Russian", () => {
+  it("renders app branding", () => {
     const html = renderToStaticMarkup(<App />);
-    expect(html).toContain("Rise LVL UP");
+    expect(html).toContain("RISE");
+    expect(html).toContain("Modern Samurai");
   });
 });

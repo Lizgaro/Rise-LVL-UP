@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { filterTasksByView, type TaskListView } from "../core/task-filters";
 import { useAppStore } from "../store/use-app-store";
-import { VoiceQuickAdd } from "./VoiceQuickAdd";
 
 export function TaskInboxCard() {
   const tasks = useAppStore((state) => state.tasks);
@@ -46,7 +45,6 @@ export function TaskInboxCard() {
           Добавить
         </button>
       </div>
-      <VoiceQuickAdd />
       <div className="row">
         <label>
           Фильтр списка

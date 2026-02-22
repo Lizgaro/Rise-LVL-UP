@@ -1,5 +1,22 @@
 # Rise LVL UP - Master Progress Log (2026-02-21)
 
+## Update 2026-02-22 (Jules UI Hotfix)
+- User-reported gap closed: full Jules visual shell integrated into working app, not only tokens/theme.
+- Added new UI shell files:
+  - `src/ui/DashboardLayout.tsx`
+  - `src/ui/Sidebar.tsx`
+  - `src/ui/TopBar.tsx`
+  - `src/ui/VoiceFooter.tsx`
+  - `src/ui/layout.css`
+- Refactored `src/ui/AppShell.tsx` to use tabbed sidebar flow with preserved logic and data model.
+- Upgraded voice experience with dock mode in floating footer:
+  - `src/ui/VoiceQuickAdd.tsx` (`variant="dock"`), Gemini fallback intact.
+- Updated tests and verified:
+  - `npm run test:run` -> PASS (85/85)
+  - `npm run build` -> PASS
+- Added issue log with done/remaining:
+  - `docs/issues/2026-02-22-jules-ui-integration-hotfix.md`
+
 ## Done
 - Received product vision and constraints from user.
 - Connected and cloned target repository: `https://github.com/Lizgaro/Rise-LVL-UP.git`.
