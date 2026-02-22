@@ -16,6 +16,9 @@
   - `index.html` font links.
   - `src/main.tsx` layout css import.
 - Updated UI tests to match new shell.
+- Synced and merged remote Jules branch state from `origin/feat/mvp-core`.
+- Added light/ronin theme switch in settings (`Jules Light` / `Jules Ronin`).
+- Disabled Gemini integration in voice routing (forced local parser fallback).
 
 ## Verification
 
@@ -24,5 +27,4 @@
 
 ## Remaining
 
-- Sync branch to remote GitHub (blocked by local git auth setup).
-- Accept/merge external Jules PR branch once auth is restored (optional, current UI already integrated manually).
+- Optional: integrate full standalone Ronin layout variant (separate composition, not only color theme).
