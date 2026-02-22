@@ -5,6 +5,7 @@ import type {
   Goal,
   Habit,
   HabitLog,
+  MonthPlan,
   RecoveryQuest,
   RPGProfile,
   Task,
@@ -23,6 +24,7 @@ export interface PersistedSnapshot {
   habitLogs: HabitLog[];
   dayPlan?: DayPlan;
   weekPlan?: WeekPlan;
+  monthPlan?: MonthPlan;
   rpg?: RPGProfile;
   recoveryQuest?: RecoveryQuest;
   audioSettings?: AudioSettings;
@@ -76,6 +78,10 @@ export async function saveWeekPlan(weekPlan: WeekPlan): Promise<void> {
   await db.weekPlans.put(weekPlan);
 }
 
+export async function saveMonthPlan(monthPlan: MonthPlan): Promise<void> {
+  await db.monthPlans.put(monthPlan);
+}
+
 export async function saveRpgProfile(rpg: RPGProfile): Promise<void> {
   await db.rpgProfiles.put({ ...rpg, id: MAIN_ROW_ID });
 }
@@ -105,6 +111,7 @@ export async function loadPersistedSnapshot(): Promise<PersistedSnapshot> {
     habitLogs,
     dayPlans,
     weekPlans,
+    monthPlans,
     rpgRow,
     recoveryQuest,
     audioSettingsRow,
@@ -116,6 +123,7 @@ export async function loadPersistedSnapshot(): Promise<PersistedSnapshot> {
     db.habitLogs.toArray(),
     db.dayPlans.toArray(),
     db.weekPlans.toArray(),
+    db.monthPlans.toArray(),
     db.rpgProfiles.get(MAIN_ROW_ID),
     db.recoveryQuests.orderBy("expiresAt").reverse().first(),
     db.audioSettings.get(MAIN_ROW_ID),
@@ -124,6 +132,7 @@ export async function loadPersistedSnapshot(): Promise<PersistedSnapshot> {
 
   const dayPlan = dayPlans.sort((a, b) => b.date.localeCompare(a.date))[0];
   const weekPlan = weekPlans.sort((a, b) => b.weekStartDate.localeCompare(a.weekStartDate))[0];
+  const monthPlan = monthPlans.sort((a, b) => b.monthStartDate.localeCompare(a.monthStartDate))[0];
   const rpg = rpgRow
     ? (({ id, ...rest }) => rest)(rpgRow)
     : undefined;
@@ -139,6 +148,7 @@ export async function loadPersistedSnapshot(): Promise<PersistedSnapshot> {
     habitLogs,
     dayPlan,
     weekPlan,
+    monthPlan,
     rpg,
     recoveryQuest,
     audioSettings,
@@ -180,6 +190,7 @@ export async function importBackup(payload: unknown): Promise<void> {
   if (habitLogs.length > 0) writes.push(db.habitLogs.bulkPut(habitLogs));
   if (snapshot.dayPlan) writes.push(db.dayPlans.put(snapshot.dayPlan));
   if (snapshot.weekPlan) writes.push(db.weekPlans.put(snapshot.weekPlan));
+  if (snapshot.monthPlan) writes.push(db.monthPlans.put(snapshot.monthPlan));
   if (snapshot.rpg) writes.push(db.rpgProfiles.put({ ...snapshot.rpg, id: MAIN_ROW_ID }));
   if (snapshot.recoveryQuest) writes.push(db.recoveryQuests.put(snapshot.recoveryQuest));
   if (snapshot.audioSettings) writes.push(db.audioSettings.put({ ...snapshot.audioSettings, id: MAIN_ROW_ID }));
@@ -197,6 +208,7 @@ export async function clearAllData(): Promise<void> {
     db.recoveryQuests.clear(),
     db.dayPlans.clear(),
     db.weekPlans.clear(),
+    db.monthPlans.clear(),
     db.rpgProfiles.clear(),
     db.audioSettings.clear(),
   ]);

@@ -8,6 +8,7 @@ import {
   loadPersistedSnapshot,
   saveDayPlan,
   saveGoal,
+  saveMonthPlan,
   saveRpgProfile,
   saveTask,
   saveWeekPlan,
@@ -61,6 +62,10 @@ describe("Repository", () => {
       priorityTaskIds: [task.id],
       goalIds: [goal.id],
     });
+    await saveMonthPlan({
+      monthStartDate: "2026-02-01",
+      priorityTaskIds: [task.id],
+    });
     await saveRpgProfile({
       level: 2,
       xpTotal: 120,
@@ -79,6 +84,7 @@ describe("Repository", () => {
     expect(restored.goals).toHaveLength(1);
     expect(restored.dayPlan?.priorityTaskIds).toContain(task.id);
     expect(restored.weekPlan?.goalIds).toContain(goal.id);
+    expect(restored.monthPlan?.priorityTaskIds).toContain(task.id);
     expect(restored.rpg?.level).toBe(2);
   });
 });

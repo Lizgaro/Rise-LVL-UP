@@ -21,6 +21,12 @@ export function getWeekStartKeyAtOffset(now: number, offsetMinutes: number): str
   return shifted.toISOString().slice(0, 10);
 }
 
+export function getMonthStartKeyAtOffset(now: number, offsetMinutes: number): string {
+  const shifted = shiftToOffset(now, offsetMinutes);
+  shifted.setUTCDate(1);
+  return shifted.toISOString().slice(0, 10);
+}
+
 export function getLocalDateKey(now: number = Date.now()): string {
   const offsetMinutes = new Date(now).getTimezoneOffset();
   return getDateKeyAtOffset(now, offsetMinutes);
@@ -29,4 +35,9 @@ export function getLocalDateKey(now: number = Date.now()): string {
 export function getLocalWeekStartKey(now: number = Date.now()): string {
   const offsetMinutes = new Date(now).getTimezoneOffset();
   return getWeekStartKeyAtOffset(now, offsetMinutes);
+}
+
+export function getLocalMonthStartKey(now: number = Date.now()): string {
+  const offsetMinutes = new Date(now).getTimezoneOffset();
+  return getMonthStartKeyAtOffset(now, offsetMinutes);
 }

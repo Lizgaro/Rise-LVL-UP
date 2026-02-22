@@ -1,10 +1,10 @@
 export type TaskType = "task" | "idea";
 export type TaskStatus = "todo" | "done" | "missed";
-export type PlanScope = "inbox" | "day" | "week";
+export type PlanScope = "inbox" | "day" | "week" | "month";
 
 export type HabitMode = "build" | "quit";
 export type HabitLogStatus = "done" | "skipped" | "relapse";
-export type GoalScope = "week" | "custom";
+export type GoalScope = "day" | "week" | "month" | "custom";
 export type GoalStatus = "active" | "done" | "archived";
 export type FocusSessionStatus = "running" | "done" | "aborted";
 export type RecoveryStatus = "active" | "done" | "expired";
@@ -14,6 +14,7 @@ export type NoiseType = "off" | "white" | "pink" | "brown";
 export interface Task {
   id: string;
   title: string;
+  note?: string;
   type: TaskType;
   status: TaskStatus;
   planScope: PlanScope;
@@ -50,6 +51,7 @@ export interface HabitLog {
 export interface Goal {
   id: string;
   title: string;
+  note?: string;
   scope: GoalScope;
   targetCount: number;
   currentCount: number;
@@ -66,6 +68,11 @@ export interface WeekPlan {
   weekStartDate: string;
   priorityTaskIds: string[];
   goalIds: string[];
+}
+
+export interface MonthPlan {
+  monthStartDate: string;
+  priorityTaskIds: string[];
 }
 
 export interface RPGProfile {

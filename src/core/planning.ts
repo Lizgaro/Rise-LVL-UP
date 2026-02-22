@@ -11,3 +11,10 @@ export function setWeekPriorities(taskIds: string[]): string[] {
   }
   return [...new Set(taskIds)];
 }
+
+export function setMonthPriorities(taskIds: string[]): string[] {
+  if (taskIds.length > 12) {
+    throw new Error("Можно выбрать максимум 12 приоритетов на месяц");
+  }
+  return [...new Set(taskIds)];
+}

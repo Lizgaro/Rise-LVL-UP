@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { shouldUseFocusLayout } from "../core/focus-mode";
 import { markOnboardingDone, shouldShowOnboarding } from "../core/onboarding";
 import { FocusTimerCard } from "./FocusTimerCard";
@@ -8,6 +8,7 @@ import { HabitsCard } from "./HabitsCard";
 import { HealthBanner } from "./HealthBanner";
 import { NoiseCard } from "./NoiseCard";
 import { PlansCard } from "./PlansCard";
+import { PriorityBoardsCard } from "./PriorityBoardsCard";
 import { ProgressCard } from "./ProgressCard";
 import { PwaInstallCard } from "./PwaInstallCard";
 import { PwaUpdateCard } from "./PwaUpdateCard";
@@ -17,6 +18,15 @@ import { TodayFocusCard } from "./TodayFocusCard";
 import { useAppStore } from "../store/use-app-store";
 
 type WorkspaceView = "focus" | "plan" | "review" | "all";
+type UiTheme = "core-light" | "jules-light" | "jules-ronin";
+const THEME_STORAGE_KEY = "rise-lvl-up:ui-theme-v1";
+
+function getInitialTheme(): UiTheme {
+  if (typeof window === "undefined") return "core-light";
+  const saved = window.localStorage.getItem(THEME_STORAGE_KEY);
+  if (saved === "core-light" || saved === "jules-light" || saved === "jules-ronin") return saved;
+  return "core-light";
+}
 
 export function AppShell() {
   const uiError = useAppStore((state) => state.uiError);
@@ -25,7 +35,14 @@ export function AppShell() {
   const [showOnboarding, setShowOnboarding] = useState(() => shouldShowOnboarding());
   const [focusModeEnabled, setFocusModeEnabled] = useState(false);
   const [workspaceView, setWorkspaceView] = useState<WorkspaceView>("focus");
+  const [theme, setTheme] = useState<UiTheme>(() => getInitialTheme());
   const focusLayout = shouldUseFocusLayout(focusModeEnabled, timerRunning);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    document.documentElement.setAttribute("data-theme", theme);
+    window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+  }, [theme]);
 
   return (
     <main className="page">
@@ -59,7 +76,7 @@ export function AppShell() {
       <PwaUpdateCard />
 
       {uiError ? (
-        <div className="error">
+        <div className="error" data-testid="ui-error-message">
           <span>{uiError}</span>
           <button type="button" onClick={clearUiError}>
             Закрыть
@@ -89,6 +106,19 @@ export function AppShell() {
             <option value="plan">Планирование</option>
             <option value="review">Ревью</option>
             <option value="all">Все</option>
+          </select>
+        </label>
+        <label className="check">
+          Тема
+          <select
+            className="theme-switch"
+            data-testid="theme-select"
+            value={theme}
+            onChange={(e) => setTheme(e.target.value as UiTheme)}
+          >
+            <option value="core-light">Core Light</option>
+            <option value="jules-light">Jules White</option>
+            <option value="jules-ronin">Jules Ronin Dark</option>
           </select>
         </label>
         <p className="muted">
@@ -128,6 +158,7 @@ export function AppShell() {
               <HealthBanner />
               <TaskInboxCard />
               <PlansCard />
+              <PriorityBoardsCard />
               <GoalsCard />
               <HabitsCard />
             </>
@@ -149,6 +180,7 @@ export function AppShell() {
               <FocusTimerCard />
               <TaskInboxCard />
               <PlansCard />
+              <PriorityBoardsCard />
               <ReviewCard />
               <GoalsCard />
               <HabitsCard />

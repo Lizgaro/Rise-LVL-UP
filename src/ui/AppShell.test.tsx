@@ -13,6 +13,9 @@ describe("Russian UI", () => {
     expect(html).toContain("Планирование");
     expect(html).toContain("Ревью");
     expect(html).toContain("Все");
+    expect(html).toContain("Тема");
+    expect(html).toContain("Jules White");
+    expect(html).toContain("Jules Ronin Dark");
     expect(html).toContain("Режим фокуса");
     expect(html).toContain("Пауза");
     expect(html).toContain("Горячие клавиши");

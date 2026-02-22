@@ -6,6 +6,7 @@ import type {
   Goal,
   Habit,
   HabitLog,
+  MonthPlan,
   RecoveryQuest,
   RPGProfile,
   Task,
@@ -21,6 +22,7 @@ export class RiseDb extends Dexie {
   recoveryQuests!: EntityTable<RecoveryQuest, "id">;
   dayPlans!: EntityTable<DayPlan, "date">;
   weekPlans!: EntityTable<WeekPlan, "weekStartDate">;
+  monthPlans!: EntityTable<MonthPlan, "monthStartDate">;
   rpgProfiles!: EntityTable<RPGProfile & { id: "main" }, "id">;
   audioSettings!: EntityTable<AudioSettings & { id: "main" }, "id">;
 
@@ -35,6 +37,20 @@ export class RiseDb extends Dexie {
       recoveryQuests: "id, status, expiresAt",
       dayPlans: "date",
       weekPlans: "weekStartDate",
+      rpgProfiles: "id, level",
+      audioSettings: "id, noiseType",
+    });
+
+    this.version(2).stores({
+      tasks: "id, status, planScope, createdAt",
+      habits: "id, active, mode, createdAt",
+      habitLogs: "id, habitId, date, status",
+      goals: "id, status, scope",
+      focusSessions: "id, status, startedAt",
+      recoveryQuests: "id, status, expiresAt",
+      dayPlans: "date",
+      weekPlans: "weekStartDate",
+      monthPlans: "monthStartDate",
       rpgProfiles: "id, level",
       audioSettings: "id, noiseType",
     });

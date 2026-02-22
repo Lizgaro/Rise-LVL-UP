@@ -569,3 +569,26 @@
 
 ## Next Step
 - Start P2 stress-hardening batch with browser-oriented edge-case tests first.
+
+## Update (2026-02-22): UX + Voice AI Priority Upgrade (Non-Design Track)
+- Completed core non-design implementation for user-requested flow:
+  - Added month planning layer (`PlanScope=month`, `MonthPlan`, constraints, persistence).
+  - Added editable notes/titles for tasks and goals.
+  - Added day goal priority in focus selection (`scope=day` goal can become daily focus target).
+  - Split planning interaction into dedicated day focus widget and separate week/month priorities widget.
+  - Extended voice intents with month routing + task completion commands.
+  - Integrated optional Google Gemini routing layer with strict local fallback.
+- Delegated visual theme design track (white/black) to Jules:
+  - `docs/issues/2026-02-22-jules-design-delegation.md`
+
+### Verification after 2026-02-22 batch
+- `npm run test:run` -> PASS (85/85)
+- `npm run build` -> PASS
+- `npm run e2e` -> blocked in sandbox shell by localhost loopback restriction (`connect EPERM 127.0.0.1:4173`).
+
+## In Progress
+- Await Jules design outputs for final visual integration pass.
+
+## Remaining
+- Run browser e2e gate in unrestricted environment.
+- Integrate/review Jules white-black theme patch against current logic changes.

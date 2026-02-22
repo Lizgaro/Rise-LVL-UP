@@ -43,13 +43,18 @@ export function HabitsCard() {
               {habit.title} ({habit.mode === "build" ? "Развить" : "Избавиться"})
             </span>
             <div className="row compact">
-              <button type="button" onClick={() => markHabitStatus(habit.id, "done")}>
+              <button type="button" onClick={() => markHabitStatus(habit.id, "done")} aria-label="Отметить выполнение">
                 Сделано
               </button>
-              <button type="button" onClick={() => markHabitStatus(habit.id, "skipped")}>
+              <button type="button" onClick={() => markHabitStatus(habit.id, "skipped")} aria-label="Отметить пропуск">
                 Пропуск
               </button>
-              <button data-testid="habit-relapse-btn" type="button" onClick={() => markHabitStatus(habit.id, "relapse")}>
+              <button
+                data-testid="habit-relapse-btn"
+                type="button"
+                onClick={() => markHabitStatus(habit.id, "relapse")}
+                aria-label="Отметить срыв"
+              >
                 Срыв
               </button>
             </div>

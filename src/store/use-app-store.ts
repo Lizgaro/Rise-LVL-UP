@@ -1,8 +1,8 @@
 import { useStore } from "zustand";
 import { createStore } from "zustand/vanilla";
 import { createNoiseController } from "../audio/noise-engine";
-import { getLocalDateKey, getLocalWeekStartKey } from "../core/date-keys";
-import { setDayPriorities, setWeekPriorities } from "../core/planning";
+import { getLocalDateKey, getLocalMonthStartKey, getLocalWeekStartKey } from "../core/date-keys";
+import { setDayPriorities, setMonthPriorities, setWeekPriorities } from "../core/planning";
 import { applyEvent } from "../core/progress-rules";
 import { TIMER_DEFAULTS } from "../domain/constants";
 import type {
@@ -15,6 +15,7 @@ import type {
   HabitLog,
   HabitLogStatus,
   HabitMode,
+  MonthPlan,
   NoiseType,
   RecoveryQuest,
   RPGProfile,
@@ -32,6 +33,7 @@ import {
   saveGoals,
   saveHabit,
   saveHabitLog,
+  saveMonthPlan,
   saveRecoveryQuest,
   saveRpgProfile,
   saveTask,
@@ -64,6 +66,7 @@ export interface AppState {
   habitLogs: HabitLog[];
   dayPlan: DayPlan;
   weekPlan: WeekPlan;
+  monthPlan: MonthPlan;
   rpg: RPGProfile;
   recoveryQuest?: RecoveryQuest;
   xpEvents: XpEvent[];
@@ -76,11 +79,14 @@ export interface AppState {
 export interface AppActions {
   loadInitial: () => Promise<void>;
   addTask: (title: string, type: TaskType) => Promise<string>;
+  updateTask: (id: string, patch: Partial<Pick<Task, "title" | "note">>) => Promise<void>;
   toggleTaskDone: (id: string) => Promise<void>;
   setTaskScope: (id: string, scope: Task["planScope"]) => Promise<void>;
   setDayPlan: (taskIds: string[]) => void;
   setWeekPlan: (taskIds: string[]) => void;
-  addGoal: (title: string, targetCount: number) => string;
+  setMonthPlan: (taskIds: string[]) => void;
+  addGoal: (title: string, targetCount: number, scope?: Goal["scope"]) => string;
+  updateGoal: (goalId: string, patch: Partial<Pick<Goal, "title" | "note" | "scope">>) => void;
   incrementGoalProgress: (goalId: string) => void;
   addHabit: (title: string, mode: HabitMode) => string;
   markHabitStatus: (habitId: string, status: HabitLogStatus, note?: string) => void;
@@ -111,6 +117,10 @@ function todayKey(now: number = Date.now()): string {
 
 function weekStartKey(now: number = Date.now()): string {
   return getLocalWeekStartKey(now);
+}
+
+function monthStartKey(now: number = Date.now()): string {
+  return getLocalMonthStartKey(now);
 }
 
 const initialRpg: RPGProfile = {
@@ -216,6 +226,10 @@ const initialState: Omit<AppStoreState, keyof AppActions> = {
     weekStartDate: weekStartKey(),
     priorityTaskIds: [],
     goalIds: [],
+  },
+  monthPlan: {
+    monthStartDate: monthStartKey(),
+    priorityTaskIds: [],
   },
   rpg: initialRpg,
   xpEvents: [],
@@ -490,6 +504,7 @@ export function createAppStore() {
         habitLogs: snapshot.habitLogs,
         dayPlan: snapshot.dayPlan ?? state.dayPlan,
         weekPlan: snapshot.weekPlan ?? state.weekPlan,
+        monthPlan: snapshot.monthPlan ?? state.monthPlan,
         rpg: snapshot.rpg ?? state.rpg,
         recoveryQuest: nextRecoveryQuest,
         noise: snapshot.audioSettings ?? state.noise,
@@ -540,6 +555,31 @@ export function createAppStore() {
       set((state) => ({ tasks: [task, ...state.tasks] }));
       scheduleSyncBroadcast();
       return task.id;
+    },
+
+    updateTask: async (id, patch) => {
+      const state = get();
+      const existing = state.tasks.find((task) => task.id === id) ?? (await getTaskById(id));
+      if (!existing) return;
+
+      const nextTitle = patch.title?.trim();
+      if (patch.title !== undefined && !nextTitle) {
+        set({ uiError: "Название задачи не может быть пустым" });
+        return;
+      }
+
+      const nextTask: Task = {
+        ...existing,
+        title: nextTitle ?? existing.title,
+        note: patch.note !== undefined ? patch.note.trim() || undefined : existing.note,
+      };
+      await saveTask(nextTask);
+      set((prev) => ({
+        tasks: prev.tasks.some((task) => task.id === id)
+          ? prev.tasks.map((task) => (task.id === id ? nextTask : task))
+          : [nextTask, ...prev.tasks],
+      }));
+      scheduleSyncBroadcast();
     },
 
     toggleTaskDone: async (id) => {
@@ -640,11 +680,31 @@ export function createAppStore() {
       }
     },
 
-    addGoal: (title, targetCount) => {
+    setMonthPlan: (taskIds) => {
+      try {
+        const priorityTaskIds = setMonthPriorities(taskIds);
+        set((state) => ({
+          monthPlan: {
+            ...state.monthPlan,
+            monthStartDate: monthStartKey(),
+            priorityTaskIds,
+          },
+          uiError: undefined,
+        }));
+        const monthPlan = get().monthPlan;
+        enqueuePersistence(async () => {
+          await saveMonthPlan(monthPlan);
+        });
+      } catch (error) {
+        set({ uiError: (error as Error).message });
+      }
+    },
+
+    addGoal: (title, targetCount, scope = "week") => {
       const goal: Goal = {
         id: makeId(),
         title: title.trim() || "Новая цель",
-        scope: "week",
+        scope,
         targetCount: Math.max(1, targetCount),
         currentCount: 0,
         status: "active",
@@ -654,7 +714,10 @@ export function createAppStore() {
         goals: [goal, ...state.goals],
         weekPlan: {
           ...state.weekPlan,
-          goalIds: [...new Set([...state.weekPlan.goalIds, goal.id])],
+          goalIds:
+            goal.scope === "week"
+              ? [...new Set([...state.weekPlan.goalIds, goal.id])]
+              : state.weekPlan.goalIds,
         },
       }));
 
@@ -665,6 +728,25 @@ export function createAppStore() {
       });
 
       return goal.id;
+    },
+
+    updateGoal: (goalId, patch) => {
+      set((state) => {
+        const goals = state.goals.map((goal) => {
+          if (goal.id !== goalId) return goal;
+          const nextTitle = patch.title?.trim();
+          return {
+            ...goal,
+            title: nextTitle || goal.title,
+            note: patch.note !== undefined ? patch.note.trim() || undefined : goal.note,
+            scope: patch.scope ?? goal.scope,
+          };
+        });
+        enqueuePersistence(async () => {
+          await saveGoals(goals);
+        });
+        return { goals };
+      });
     },
 
     incrementGoalProgress: (goalId) => {
@@ -763,17 +845,20 @@ export function createAppStore() {
       const state = get();
       const isDayExpired = state.dayPlan.date < todayKey(checkNow);
       const isWeekExpired = state.weekPlan.weekStartDate < weekStartKey(checkNow);
+      const isMonthExpired = state.monthPlan.monthStartDate < monthStartKey(checkNow);
 
-      if (!isDayExpired && !isWeekExpired) return;
+      if (!isDayExpired && !isWeekExpired && !isMonthExpired) return;
 
       const dayPriority = new Set(isDayExpired ? state.dayPlan.priorityTaskIds : []);
       const weekPriority = new Set(isWeekExpired ? state.weekPlan.priorityTaskIds : []);
+      const monthPriority = new Set(isMonthExpired ? state.monthPlan.priorityTaskIds : []);
       const nextTasks: Task[] = [];
       const missedTasks: Task[] = [];
 
       for (const task of state.tasks) {
         const shouldMiss =
-          task.status === "todo" && (dayPriority.has(task.id) || weekPriority.has(task.id));
+          task.status === "todo" &&
+          (dayPriority.has(task.id) || weekPriority.has(task.id) || monthPriority.has(task.id));
 
         if (!shouldMiss) {
           nextTasks.push(task);

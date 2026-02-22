@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { selectDailyFocusTarget } from "../core/focus-target";
 import { useAppStore } from "../store/use-app-store";
 
 function getTaskStatusLabel(status: "todo" | "done" | "missed"): string {
@@ -9,10 +10,12 @@ function getTaskStatusLabel(status: "todo" | "done" | "missed"): string {
 
 export function TodayFocusCard() {
   const tasks = useAppStore((state) => state.tasks);
+  const goals = useAppStore((state) => state.goals);
   const dayPlan = useAppStore((state) => state.dayPlan);
   const timer = useAppStore((state) => state.timer);
   const startFocusSession = useAppStore((state) => state.startFocusSession);
   const toggleTaskDone = useAppStore((state) => state.toggleTaskDone);
+  const incrementGoalProgress = useAppStore((state) => state.incrementGoalProgress);
 
   const dayTasks = useMemo(
     () =>
@@ -22,7 +25,7 @@ export function TodayFocusCard() {
     [dayPlan.priorityTaskIds, tasks],
   );
 
-  const nextTask = dayTasks.find((task) => task.status === "todo");
+  const focusTarget = selectDailyFocusTarget(tasks, dayPlan.priorityTaskIds, goals);
   const total = dayTasks.length;
   const done = dayTasks.filter((task) => task.status === "done").length;
   const missed = dayTasks.filter((task) => task.status === "missed").length;
@@ -30,13 +33,40 @@ export function TodayFocusCard() {
   return (
     <section className="card hero-card">
       <h2>Что делать сейчас</h2>
-      {nextTask ? (
+      {focusTarget?.kind === "goal" ? (
         <>
           <p>
-            Главная задача: <strong>{nextTask.title}</strong>
+            Цель дня: <strong>{focusTarget.item.title}</strong>
           </p>
           <p className="muted">
-            Статус: {getTaskStatusLabel(nextTask.status)} | Сегодня выполнено {done}/{total}
+            Прогресс: {focusTarget.item.currentCount}/{focusTarget.item.targetCount}
+          </p>
+          <div className="row">
+            <button
+              data-testid="hero-start-focus-btn"
+              type="button"
+              onClick={() => startFocusSession(timer.focusMinutes, timer.breakMinutes)}
+              disabled={timer.isRunning}
+            >
+              Старт фокуса
+            </button>
+            <button
+              data-testid="hero-goal-step-btn"
+              type="button"
+              onClick={() => incrementGoalProgress(focusTarget.item.id)}
+              disabled={focusTarget.item.status !== "active"}
+            >
+              + шаг по цели
+            </button>
+          </div>
+        </>
+      ) : focusTarget?.kind === "task" ? (
+        <>
+          <p>
+            Главная задача: <strong>{focusTarget.item.title}</strong>
+          </p>
+          <p className="muted">
+            Статус: {getTaskStatusLabel(focusTarget.item.status)} | Сегодня выполнено {done}/{total}
           </p>
           <div className="row">
             <button
@@ -50,8 +80,8 @@ export function TodayFocusCard() {
             <button
               data-testid="hero-complete-task-btn"
               type="button"
-              onClick={() => void toggleTaskDone(nextTask.id)}
-              disabled={nextTask.status !== "todo"}
+              onClick={() => void toggleTaskDone(focusTarget.item.id)}
+              disabled={focusTarget.item.status !== "todo"}
             >
               Задача выполнена
             </button>

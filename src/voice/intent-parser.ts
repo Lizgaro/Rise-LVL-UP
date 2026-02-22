@@ -4,7 +4,7 @@ export type VoiceIntent =
   | {
       kind: "task";
       title: string;
-      scope: Extract<PlanScope, "inbox" | "day" | "week">;
+      scope: Extract<PlanScope, "inbox" | "day" | "week" | "month">;
     }
   | {
       kind: "goal";
@@ -15,6 +15,10 @@ export type VoiceIntent =
       kind: "habit";
       title: string;
       mode: HabitMode;
+    }
+  | {
+      kind: "complete_task";
+      query: string;
     }
   | {
       kind: "unknown";
@@ -34,6 +38,9 @@ function sanitizeTitle(text: string): string {
     "неделя",
     "на неделю",
     "на этой неделе",
+    "месяц",
+    "на месяц",
+    "в этом месяце",
     "каждый день",
     "ежедневно",
     "сделать",
@@ -48,8 +55,15 @@ function sanitizeTitle(text: string): string {
   return cleaned || text.trim().toLowerCase();
 }
 
-function detectTaskScope(normalized: string): Extract<PlanScope, "inbox" | "day" | "week"> {
+function detectTaskScope(normalized: string): Extract<PlanScope, "inbox" | "day" | "week" | "month"> {
   if (normalized.includes("сегодня") || normalized.includes("на сегодня")) return "day";
+  if (
+    normalized.includes("на месяц") ||
+    normalized.includes("в этом месяце") ||
+    normalized.includes("месяц")
+  ) {
+    return "month";
+  }
   if (normalized.includes("неделя") || normalized.includes("на неделю") || normalized.includes("на этой неделе"))
     return "week";
   return "inbox";
@@ -82,11 +96,41 @@ function detectHabitMode(normalized: string): HabitMode {
   return "build";
 }
 
+function isTaskCompletionIntent(normalized: string): boolean {
+  return (
+    normalized.includes("выполнил") ||
+    normalized.includes("выполнена") ||
+    normalized.includes("сделал") ||
+    normalized.includes("закрыл задачу") ||
+    normalized.includes("готово")
+  );
+}
+
+function extractCompletionQuery(original: string): string {
+  const cleaned = original
+    .toLowerCase()
+    .replace(/задач[ауы]?/g, " ")
+    .replace(/выполнил[ао]?/g, " ")
+    .replace(/сделал[ао]?/g, " ")
+    .replace(/закрыл[ао]?/g, " ")
+    .replace(/готово/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return cleaned || original.trim().toLowerCase();
+}
+
 export function parseVoiceInput(rawText: string): VoiceIntent {
   const original = rawText.trim();
   if (!original) return { kind: "unknown", text: "" };
 
   const normalized = normalize(original);
+
+  if (isTaskCompletionIntent(normalized)) {
+    return {
+      kind: "complete_task",
+      query: extractCompletionQuery(original),
+    };
+  }
 
   if (isGoalIntent(normalized)) {
     return {

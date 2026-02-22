@@ -122,6 +122,7 @@ export function FocusTimerCard() {
           type="button"
           onClick={completeFocusSession}
           disabled={!timer.isRunning}
+          aria-label="Завершить сессию фокуса"
         >
           {timer.phase === "break" ? "Пропустить перерыв" : "Завершить фокус"}
         </button>
@@ -133,7 +134,7 @@ export function FocusTimerCard() {
         >
           {timer.isRunning ? "Пауза" : timer.phase === "idle" ? "Пауза" : "Продолжить"}
         </button>
-        <button type="button" onClick={cancelFocusSession} disabled={!timer.isRunning}>
+        <button type="button" onClick={cancelFocusSession} disabled={!timer.isRunning} aria-label="Отменить текущую сессию">
           Отмена
         </button>
       </div>

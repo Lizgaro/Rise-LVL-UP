@@ -13,6 +13,60 @@
   --error-border: #efb2b2;
   --error-text: #7c1b1b;
   --shadow-soft: 0 10px 30px rgba(21, 31, 56, 0.08);
+}
+
+:root[data-theme="jules-light"] {
+  --font-base: "Manrope", "Noto Sans", sans-serif;
+  --bg-main: #f9f7f2;
+  --bg-accent: #f8ece4;
+  --bg-calm: #f2efe8;
+  --surface: rgba(255, 255, 255, 0.96);
+  --border: #e8ddd1;
+  --text-main: #231d18;
+  --text-muted: #7a6b5e;
+  --accent: #b42222;
+  --accent-soft: #f7dddc;
+  --error-bg: #fff1f1;
+  --error-border: #e6b8b8;
+  --error-text: #7c1b1b;
+  --shadow-soft: 0 14px 32px rgba(99, 61, 45, 0.12);
+}
+
+:root[data-theme="jules-ronin"] {
+  --font-base: "Space Grotesk", "Noto Sans", sans-serif;
+  --bg-main: #141112;
+  --bg-accent: #221718;
+  --bg-calm: #1b1718;
+  --surface: rgba(28, 23, 24, 0.9);
+  --border: #3b3030;
+  --text-main: #f2e5d6;
+  --text-muted: #c5b09a;
+  --accent: #c5a159;
+  --accent-soft: #2a2319;
+  --error-bg: #2d1d1d;
+  --error-border: #6c3d3d;
+  --error-text: #f5b7b7;
+  --shadow-soft: 0 16px 36px rgba(0, 0, 0, 0.45);
+}
+
+:root[data-theme="core-light"] {
+  --font-base: "IBM Plex Sans", "Noto Sans", "Segoe UI", sans-serif;
+  --bg-main: #f4f6fa;
+  --bg-accent: #ffeef3;
+  --bg-calm: #e8f1ff;
+  --surface: rgba(255, 255, 255, 0.94);
+  --border: #dde2ec;
+  --text-main: #171b24;
+  --text-muted: #5e667a;
+  --accent: #d84c78;
+  --accent-soft: #f8dce7;
+  --error-bg: #fff0f0;
+  --error-border: #efb2b2;
+  --error-text: #7c1b1b;
+  --shadow-soft: 0 10px 30px rgba(21, 31, 56, 0.08);
+}
+
+:root {
   color: var(--text-main);
   font-family: var(--font-base);
   background: var(--bg-main);
@@ -38,6 +92,10 @@ body {
   display: grid;
   gap: 14px;
   animation: page-enter 420ms ease-out both;
+}
+
+.theme-switch {
+  min-width: 180px;
 }
 
 .page > * {
@@ -290,6 +348,26 @@ button {
   background: linear-gradient(180deg, #fff6fb 0%, #ffeaf3 100%);
   color: #3e1a29;
   transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+:root[data-theme="jules-light"] button {
+  border-color: #d8cbc0;
+  background: linear-gradient(180deg, #fffdfa 0%, #f8efe5 100%);
+  color: #3b2b1d;
+}
+
+:root[data-theme="jules-ronin"] button {
+  border-color: #4f4031;
+  background: linear-gradient(180deg, #2c2420 0%, #1f1a17 100%);
+  color: #f2e5d6;
+}
+
+:root[data-theme="jules-ronin"] input,
+:root[data-theme="jules-ronin"] select,
+:root[data-theme="jules-ronin"] textarea {
+  background: #221b19;
+  color: #f2e5d6;
+  border-color: #4b3e2f;
 }
 
 button:hover {

@@ -23,4 +23,18 @@ describe("parseVoiceInput", () => {
     expect(parsed.scope).toBe("day");
     expect(parsed.title).toContain("30 отжиманий");
   });
+
+  it("detects task with month scope intent", () => {
+    const parsed = parseVoiceInput("на месяц подготовить лендинг");
+    expect(parsed.kind).toBe("task");
+    if (parsed.kind !== "task") return;
+    expect(parsed.scope).toBe("month");
+  });
+
+  it("detects completion command intent", () => {
+    const parsed = parseVoiceInput("задачу подготовить отчет выполнил");
+    expect(parsed.kind).toBe("complete_task");
+    if (parsed.kind !== "complete_task") return;
+    expect(parsed.query).toContain("подготовить отчет");
+  });
 });

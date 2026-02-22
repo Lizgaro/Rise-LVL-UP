@@ -22,6 +22,7 @@ describe("filterTasksByView", () => {
     task("todo-inbox", "todo", "inbox"),
     task("todo-day", "todo", "day"),
     task("todo-week", "todo", "week"),
+    task("todo-month", "todo", "month"),
     task("done-day", "done", "day"),
     task("missed-week", "missed", "week"),
   ];
@@ -31,12 +32,14 @@ describe("filterTasksByView", () => {
       "todo-inbox",
       "todo-day",
       "todo-week",
+      "todo-month",
     ]);
   });
 
   it("returns plan-scope subsets", () => {
     expect(filterTasksByView(tasks, "day").map((item) => item.id)).toEqual(["todo-day", "done-day"]);
     expect(filterTasksByView(tasks, "week").map((item) => item.id)).toEqual(["todo-week", "missed-week"]);
+    expect(filterTasksByView(tasks, "month").map((item) => item.id)).toEqual(["todo-month"]);
   });
 
   it("returns status subsets", () => {

@@ -6,12 +6,16 @@ import { VoiceQuickAdd } from "./VoiceQuickAdd";
 export function TaskInboxCard() {
   const tasks = useAppStore((state) => state.tasks);
   const addTask = useAppStore((state) => state.addTask);
+  const updateTask = useAppStore((state) => state.updateTask);
   const toggleTaskDone = useAppStore((state) => state.toggleTaskDone);
   const setTaskScope = useAppStore((state) => state.setTaskScope);
 
   const [title, setTitle] = useState("");
   const [type, setType] = useState<"task" | "idea">("task");
   const [view, setView] = useState<TaskListView>("active");
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState("");
+  const [editingNote, setEditingNote] = useState("");
 
   const openTasks = useMemo(() => tasks.filter((task) => task.status !== "done"), [tasks]);
   const filteredTasks = useMemo(() => filterTasksByView(tasks, view), [tasks, view]);
@@ -55,6 +59,7 @@ export function TaskInboxCard() {
             <option value="all">Все</option>
             <option value="day">Приоритет дня</option>
             <option value="week">Приоритет недели</option>
+            <option value="month">Приоритет месяца</option>
             <option value="done">Выполненные</option>
             <option value="missed">Пропущенные</option>
           </select>
@@ -66,17 +71,74 @@ export function TaskInboxCard() {
         {filteredTasks.map((task) => (
           <li key={task.id} data-testid="task-item-active" className={task.status === "done" ? "done" : ""}>
             <span>{task.title}</span>
+            {task.note ? <p className="muted">{task.note}</p> : null}
             <div className="row compact">
-              <button data-testid="task-complete-check" type="button" onClick={() => void toggleTaskDone(task.id)}>
+              <button
+                data-testid="task-complete-check"
+                type="button"
+                onClick={() => void toggleTaskDone(task.id)}
+                aria-label={task.status === "done" ? "Отметить как невыполненное" : "Отметить как выполненное"}
+              >
                 {task.status === "done" ? "Вернуть" : "Готово"}
               </button>
-              <button type="button" onClick={() => void setTaskScope(task.id, "day")}>
+              <button
+                type="button"
+                onClick={() => void setTaskScope(task.id, "day")}
+                aria-label="Запланировать на сегодня"
+              >
                 В день
               </button>
-              <button type="button" onClick={() => void setTaskScope(task.id, "week")}>
+              <button
+                type="button"
+                onClick={() => void setTaskScope(task.id, "week")}
+                aria-label="Запланировать на неделю"
+              >
                 В неделю
               </button>
+              <button
+                type="button"
+                onClick={() => void setTaskScope(task.id, "month")}
+                aria-label="Запланировать на месяц"
+              >
+                В месяц
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setEditingTaskId(task.id);
+                  setEditingTitle(task.title);
+                  setEditingNote(task.note ?? "");
+                }}
+              >
+                Редактировать
+              </button>
             </div>
+            {editingTaskId === task.id ? (
+              <div className="row">
+                <input
+                  value={editingTitle}
+                  onChange={(e) => setEditingTitle(e.target.value)}
+                  placeholder="Название задачи"
+                />
+                <input
+                  value={editingNote}
+                  onChange={(e) => setEditingNote(e.target.value)}
+                  placeholder="Заметка"
+                />
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await updateTask(task.id, { title: editingTitle, note: editingNote });
+                    setEditingTaskId(null);
+                  }}
+                >
+                  Сохранить
+                </button>
+                <button type="button" onClick={() => setEditingTaskId(null)}>
+                  Отмена
+                </button>
+              </div>
+            ) : null}
           </li>
         ))}
       </ul>

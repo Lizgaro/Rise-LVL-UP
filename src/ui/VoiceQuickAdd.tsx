@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { parseVoiceInput, type VoiceIntent } from "../voice/intent-parser";
 import { useAppStore } from "../store/use-app-store";
 import { buildVoiceIntentPreview } from "../voice/intent-preview";
+import { resolveVoiceIntentWithGemini } from "../voice/gemini-intent";
 
 type RecognitionResultItem = {
   transcript: string;
@@ -38,7 +39,10 @@ function getRecognitionCtor(): RecognitionCtor | undefined {
 }
 
 export function VoiceQuickAdd() {
+  const tasks = useAppStore((state) => state.tasks);
+  const dayPlan = useAppStore((state) => state.dayPlan);
   const addTask = useAppStore((state) => state.addTask);
+  const toggleTaskDone = useAppStore((state) => state.toggleTaskDone);
   const setTaskScope = useAppStore((state) => state.setTaskScope);
   const addGoal = useAppStore((state) => state.addGoal);
   const addHabit = useAppStore((state) => state.addHabit);
@@ -51,6 +55,21 @@ export function VoiceQuickAdd() {
 
   const isSupported = Boolean(getRecognitionCtor());
   const pendingPreview = pendingIntent ? buildVoiceIntentPreview(pendingIntent) : null;
+  const isAiEnabled = Boolean(import.meta.env.VITE_GEMINI_API_KEY);
+
+  const findTaskByQuery = (query: string) => {
+    const normalizedQuery = query.toLowerCase().trim();
+    return tasks.find((task) => {
+      if (task.status === "done") return false;
+      const normalizedTitle = task.title.toLowerCase().trim();
+      return normalizedTitle.includes(normalizedQuery) || normalizedQuery.includes(normalizedTitle);
+    });
+  };
+
+  const findCurrentDayTask = () =>
+    dayPlan.priorityTaskIds
+      .map((id) => tasks.find((task) => task.id === id))
+      .find((task): task is NonNullable<typeof task> => Boolean(task) && task.status === "todo");
 
   useEffect(() => {
     return () => {
@@ -77,6 +96,21 @@ export function VoiceQuickAdd() {
         await setTaskScope(taskId, parsed.scope);
       }
       setVoiceMessage(`Добавлена задача: ${parsed.title}`);
+      return;
+    }
+
+    if (parsed.kind === "complete_task") {
+      const genericCompletionRefs = new Set(["эту", "текущую", "текущая", "сейчас"]);
+      let matched = findTaskByQuery(parsed.query);
+      if (!matched && genericCompletionRefs.has(parsed.query.trim().toLowerCase())) {
+        matched = findCurrentDayTask();
+      }
+      if (!matched) {
+        setVoiceMessage(`Не нашел задачу для завершения: ${parsed.query}`);
+        return;
+      }
+      await toggleTaskDone(matched.id);
+      setVoiceMessage(`Отметил как выполненную: ${matched.title}`);
       return;
     }
 
@@ -109,22 +143,26 @@ export function VoiceQuickAdd() {
 
     recognition.onresult = (event) => {
       const transcript = event.results[0]?.[0]?.transcript?.trim() ?? "";
-      setLastTranscript(transcript);
       if (!transcript) {
         setPendingIntent(null);
         setVoiceMessage("Пустой ввод, попробуй еще раз");
         return;
       }
 
-      const parsed = parseVoiceInput(transcript);
-      if (parsed.kind === "unknown") {
-        setPendingIntent(null);
-        setVoiceMessage("Не удалось распознать команду");
-        return;
-      }
-
-      setPendingIntent(parsed);
-      setVoiceMessage("Проверь распознавание и подтверди");
+      void resolveVoiceIntentWithGemini(transcript, parseVoiceInput).then((resolved) => {
+        setLastTranscript(resolved.rewrittenText);
+        if (resolved.intent.kind === "unknown") {
+          setPendingIntent(null);
+          setVoiceMessage("Не удалось распознать команду");
+          return;
+        }
+        setPendingIntent(resolved.intent);
+        setVoiceMessage(
+          resolved.source === "gemini"
+            ? "AI обработал команду. Проверь и подтверди."
+            : "Проверь распознавание и подтверди",
+        );
+      });
     };
 
     recognition.onerror = (event) => {
@@ -185,6 +223,7 @@ export function VoiceQuickAdd() {
       ) : null}
       {lastTranscript ? <span className="muted">Речь: {lastTranscript}</span> : null}
       {voiceMessage ? <span className="muted">{voiceMessage}</span> : null}
+      <span className="muted">AI: {isAiEnabled ? "Gemini включен" : "fallback (без API ключа)"}</span>
     </div>
   );
 }

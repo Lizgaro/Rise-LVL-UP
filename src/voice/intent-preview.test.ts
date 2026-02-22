@@ -15,6 +15,17 @@ describe("buildVoiceIntentPreview", () => {
     expect(preview.chips).toContain("Сегодня");
   });
 
+  it("builds preview for month task", () => {
+    const preview = buildVoiceIntentPreview({
+      kind: "task",
+      title: "закрыть релиз",
+      scope: "month",
+    });
+
+    expect(preview.canConfirm).toBe(true);
+    expect(preview.chips).toContain("Месяц");
+  });
+
   it("builds preview for quit habit", () => {
     const preview = buildVoiceIntentPreview({
       kind: "habit",
@@ -35,5 +46,16 @@ describe("buildVoiceIntentPreview", () => {
 
     expect(preview.canConfirm).toBe(false);
     expect(preview.title).toContain("Не удалось");
+  });
+
+  it("builds preview for task completion", () => {
+    const preview = buildVoiceIntentPreview({
+      kind: "complete_task",
+      query: "подготовить отчет",
+    });
+
+    expect(preview.canConfirm).toBe(true);
+    expect(preview.chips).toContain("Выполнение");
+    expect(preview.title).toContain("подготовить отчет");
   });
 });

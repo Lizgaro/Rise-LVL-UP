@@ -7,9 +7,10 @@ export interface VoiceIntentPreview {
   canConfirm: boolean;
 }
 
-function scopeChip(scope: "inbox" | "day" | "week"): string {
+function scopeChip(scope: "inbox" | "day" | "week" | "month"): string {
   if (scope === "day") return "Сегодня";
   if (scope === "week") return "Неделя";
+  if (scope === "month") return "Месяц";
   return "Inbox";
 }
 
@@ -38,6 +39,15 @@ export function buildVoiceIntentPreview(intent: VoiceIntent): VoiceIntentPreview
       title: `Привычка: ${intent.title}`,
       subtitle: `Режим: ${modeLabel}`,
       chips: ["Привычка", modeLabel],
+      canConfirm: true,
+    };
+  }
+
+  if (intent.kind === "complete_task") {
+    return {
+      title: `Закрыть задачу: ${intent.query}`,
+      subtitle: "Будет отмечена как выполненная",
+      chips: ["Выполнение", "Задача"],
       canConfirm: true,
     };
   }

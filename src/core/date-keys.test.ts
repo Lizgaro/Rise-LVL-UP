@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   getDateKeyAtOffset,
   getLocalDateKey,
+  getLocalMonthStartKey,
   getLocalWeekStartKey,
+  getMonthStartKeyAtOffset,
   getWeekStartKeyAtOffset,
 } from "./date-keys";
 
@@ -19,9 +21,15 @@ describe("date keys", () => {
     expect(getWeekStartKeyAtOffset(mondayUtc, 120)).toBe("2025-12-29");
   });
 
+  it("computes first day of month using offset", () => {
+    const now = Date.parse("2026-03-18T10:45:00.000Z");
+    expect(getMonthStartKeyAtOffset(now, 0)).toBe("2026-03-01");
+  });
+
   it("returns local keys in y-m-d format", () => {
     const now = Date.parse("2026-03-10T10:45:00.000Z");
     expect(getLocalDateKey(now)).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     expect(getLocalWeekStartKey(now)).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(getLocalMonthStartKey(now)).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 });

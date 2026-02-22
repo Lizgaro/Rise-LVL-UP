@@ -207,6 +207,32 @@ describe("AppStore", () => {
     expect(events.some((event) => event.label.includes("Задача"))).toBe(true);
   });
 
+  it("supports month priorities and editing task/goal notes", async () => {
+    const store = createAppStore();
+    const taskId = await store.getState().addTask("Черновик задачи", "task");
+    const goalId = store.getState().addGoal("Черновик цели", 3, "month");
+
+    store.getState().setMonthPlan([taskId]);
+    await store.getState().updateTask(taskId, {
+      title: "Финальная задача",
+      note: "Обновленное описание",
+    });
+    store.getState().updateGoal(goalId, {
+      title: "Финальная цель",
+      note: "Комментарий к цели",
+    });
+    await store.getState().flushPersistence();
+
+    const restored = createAppStore();
+    await restored.getState().loadInitial();
+
+    expect(restored.getState().monthPlan.priorityTaskIds).toContain(taskId);
+    expect(restored.getState().tasks.find((item) => item.id === taskId)?.title).toBe("Финальная задача");
+    expect(restored.getState().tasks.find((item) => item.id === taskId)?.note).toContain("Обновленное");
+    expect(restored.getState().goals.find((item) => item.id === goalId)?.title).toBe("Финальная цель");
+    expect(restored.getState().goals.find((item) => item.id === goalId)?.note).toContain("Комментарий");
+  });
+
   it("completes recovery quest after focus session and task completion", async () => {
     const store = createAppStore();
     const habitId = store.getState().addHabit("Без соцсетей", "quit");
