@@ -1,25 +1,28 @@
-import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import App from "../App";
+import { describe, expect, it } from "vitest";
+import { AppShell } from "./AppShell";
 
 describe("Russian UI", () => {
-  it("renders focused default workspace in Russian", () => {
-    const html = renderToStaticMarkup(<App />);
-    expect(html).toContain("Быстрый старт (1 минута)");
-    expect(html).toContain("Установить как приложение");
-    expect(html).toContain("Показов:");
-    expect(html).toContain("Рабочий экран");
-    expect(html).toContain("Фокус");
-    expect(html).toContain("Планирование");
-    expect(html).toContain("Ревью");
-    expect(html).toContain("Все");
-    expect(html).toContain("Режим фокуса");
-    expect(html).toContain("Пауза");
-    expect(html).toContain("Горячие клавиши");
-    expect(html).toContain("Что делать сейчас");
-    expect(html).toContain("Пульс дня");
-    expect(html).toContain("Фокус-таймер");
-    expect(html).not.toContain("Ревью дня и недели");
-    expect(html).not.toContain("Готовность окружения");
+  it("renders new design structure in Russian", () => {
+    const html = renderToStaticMarkup(<AppShell />);
+
+    // Header
+    expect(html).toContain("Rise LVL UP");
+    expect(html).toContain("Путь воина");
+    expect(html).toContain("Фокус дня");
+
+    // Sidebar Goals
+    expect(html).toContain("Ваши цели");
+
+    // Timer
+    expect(html).toContain("Таймер фокуса");
+
+    // Sidebar Stats
+    expect(html).toContain("Неделя");
+    expect(html).toContain("Месяц");
+    expect(html).toContain("Часов в потоке");
+
+    // Footer
+    expect(html).toContain("Запишите свою следующую битву");
   });
 });
