@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { shouldUseFocusLayout } from "../core/focus-mode";
 import { markOnboardingDone, shouldShowOnboarding } from "../core/onboarding";
 import { FocusTimerCard } from "./FocusTimerCard";
@@ -19,6 +19,15 @@ import { useAppStore } from "../store/use-app-store";
 import { DashboardLayout } from "./DashboardLayout";
 import type { SidebarTab } from "./Sidebar";
 
+type UiTheme = "light" | "ronin";
+const UI_THEME_STORAGE_KEY = "rise-lvl-up:ui-theme-v2";
+
+function getInitialTheme(): UiTheme {
+  if (typeof window === "undefined") return "light";
+  const saved = window.localStorage.getItem(UI_THEME_STORAGE_KEY);
+  return saved === "ronin" ? "ronin" : "light";
+}
+
 export function AppShell() {
   const uiError = useAppStore((state) => state.uiError);
   const clearUiError = useAppStore((state) => state.clearUiError);
@@ -27,8 +36,18 @@ export function AppShell() {
   const [showOnboarding, setShowOnboarding] = useState(() => shouldShowOnboarding());
   const [focusModeEnabled, setFocusModeEnabled] = useState(false);
   const [activeTab, setActiveTab] = useState<SidebarTab>("dashboard");
+  const [uiTheme, setUiTheme] = useState<UiTheme>(() => getInitialTheme());
 
   const focusLayout = shouldUseFocusLayout(focusModeEnabled, timerRunning);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const root = document.documentElement;
+    root.setAttribute("data-ui-theme", uiTheme);
+    root.classList.toggle("dark", uiTheme === "ronin");
+    root.classList.toggle("light", uiTheme !== "ronin");
+    window.localStorage.setItem(UI_THEME_STORAGE_KEY, uiTheme);
+  }, [uiTheme]);
 
   const renderContent = () => {
     if (focusLayout) {
@@ -81,6 +100,17 @@ export function AppShell() {
          return (
              <section className="card focus-mode-card">
                 <h2>Настройки фокуса</h2>
+                <label className="check">
+                  Тема
+                  <select
+                    data-testid="theme-select"
+                    value={uiTheme}
+                    onChange={(e) => setUiTheme(e.target.value as UiTheme)}
+                  >
+                    <option value="light">Jules Light</option>
+                    <option value="ronin">Jules Ronin</option>
+                  </select>
+                </label>
                 <label className="check">
                   <input
                     data-testid="focus-mode-toggle"
