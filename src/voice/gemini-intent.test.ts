@@ -19,11 +19,11 @@ describe("resolveVoiceIntentWithGemini", () => {
     expect(resolved.intent.kind).toBe("task");
   });
 
-  it("uses gemini response for month routing", async () => {
+  it("always falls back even with api key and fetch provided", async () => {
     const fallback = vi.fn((): VoiceIntent => ({
       kind: "task",
-      title: "fallback",
-      scope: "inbox",
+      title: "локальная задача",
+      scope: "month",
     }));
 
     const fetchImpl = vi.fn(async () =>
@@ -54,14 +54,12 @@ describe("resolveVoiceIntentWithGemini", () => {
       fetchImpl,
     });
 
-    expect(fetchImpl).toHaveBeenCalledOnce();
-    const requestUrl = String(fetchImpl.mock.calls[0]?.[0]);
-    expect(requestUrl).toContain("/models/gemini-3-flash-preview:generateContent");
-    expect(resolved.source).toBe("gemini");
+    expect(fetchImpl).not.toHaveBeenCalled();
+    expect(resolved.source).toBe("fallback");
     expect(resolved.intent.kind).toBe("task");
     if (resolved.intent.kind !== "task") return;
     expect(resolved.intent.scope).toBe("month");
-    expect(resolved.rewrittenText).toContain("месяц");
+    expect(resolved.rewrittenText).toBe("чеклист на месяц");
   });
 
   it("falls back on malformed gemini payload", async () => {

@@ -7,22 +7,20 @@ describe("Russian UI", () => {
     const html = renderToStaticMarkup(<App />);
     expect(html).toContain("Быстрый старт (1 минута)");
     expect(html).toContain("Установить как приложение");
-    expect(html).toContain("Показов:");
-    expect(html).toContain("Рабочий экран");
-    expect(html).toContain("Фокус");
-    expect(html).toContain("Планирование");
-    expect(html).toContain("Ревью");
-    expect(html).toContain("Все");
-    expect(html).toContain("Тема");
-    expect(html).toContain("Jules White");
-    expect(html).toContain("Jules Ronin Dark");
-    expect(html).toContain("Режим фокуса");
-    expect(html).toContain("Пауза");
-    expect(html).toContain("Горячие клавиши");
+
+    // Sidebar
+    expect(html).toContain("Главная");
+    expect(html).toContain("Журнал");
+    expect(html).toContain("Задачи");
+    expect(html).toContain("Статистика");
+
+    // Dashboard content
     expect(html).toContain("Что делать сейчас");
     expect(html).toContain("Пульс дня");
     expect(html).toContain("Фокус-таймер");
+    expect(html).toContain("Готовность окружения"); // HealthBanner is now in Dashboard
+
+    // ReviewCard is in Journal tab
     expect(html).not.toContain("Ревью дня и недели");
-    expect(html).not.toContain("Готовность окружения");
   });
 });
