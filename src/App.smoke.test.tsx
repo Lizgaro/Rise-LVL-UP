@@ -5,6 +5,7 @@ import App from "./App";
 describe("App smoke", () => {
   it("renders app title in Russian", () => {
     const html = renderToStaticMarkup(<App />);
-    expect(html).toContain("Rise LVL UP");
+    expect(html).toContain("RISE");
+    expect(html).toContain("Modern Samurai");
   });
 });
