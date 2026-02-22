@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import App from "./App";
 import { registerPwaWorker } from "./pwa";
 import "./styles.css";
+import "./ui/theme.css";
 import "./ui/layout.css";
 
 registerPwaWorker();

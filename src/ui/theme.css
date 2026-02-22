@@ -1,0 +1,48 @@
+:root {
+  --color-primary: #b42222;
+  --color-bg-light: #F9F7F2;
+  --color-bg-dark: #201212;
+  --color-ink: #1A1A1A;
+  --color-paper-dark: #E8E4D9;
+
+  --font-display: 'Manrope', sans-serif;
+  --font-heading: 'Space Grotesk', sans-serif;
+
+  /* Additional variants for primary color based on design's opacity usage */
+  --color-primary-10: rgba(180, 34, 34, 0.1);
+  --color-primary-20: rgba(180, 34, 34, 0.2);
+  --color-primary-5: rgba(180, 34, 34, 0.05);
+
+  --shadow-primary: 0 10px 15px -3px rgba(180, 34, 34, 0.2);
+}
+
+.asanoha-pattern {
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='104' viewBox='0 0 60 104' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0l30 17.32v34.64L30 69.28 0 51.96V17.32L30 0zm0 11.55L10 23.1v23.1l20 11.54 20-11.54V23.1L30 11.55zM0 86.6l30 17.32 30-17.32v-34.64L30 34.64 0 51.96v34.64zm30 11.55l-20-11.55v-23.1l20-11.54 20 11.54v23.1l-20 11.55z' fill='%23b42222' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E");
+}
+
+.heading-font {
+    font-family: var(--font-heading);
+}
+
+body {
+    font-family: var(--font-display);
+    background-color: var(--color-bg-light);
+    color: var(--color-ink);
+    min-height: 100vh;
+}
+
+/* Material Symbols Utility */
+.material-symbols-outlined {
+  font-variation-settings:
+  'FILL' 0,
+  'wght' 400,
+  'GRAD' 0,
+  'opsz' 24
+}
+.material-symbols-outlined.fill-1 {
+  font-variation-settings:
+  'FILL' 1,
+  'wght' 400,
+  'GRAD' 0,
+  'opsz' 24
+}

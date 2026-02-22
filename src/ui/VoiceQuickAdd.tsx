@@ -59,7 +59,7 @@ export function VoiceQuickAdd({ variant = "inline" }: VoiceQuickAddProps) {
 
   const isSupported = Boolean(getRecognitionCtor());
   const pendingPreview = pendingIntent ? buildVoiceIntentPreview(pendingIntent) : null;
-  const isAiEnabled = Boolean(import.meta.env.VITE_GEMINI_API_KEY);
+  const isAiEnabled = false;
 
   const findTaskByQuery = (query: string) => {
     const normalizedQuery = query.toLowerCase().trim();
@@ -214,7 +214,7 @@ export function VoiceQuickAdd({ variant = "inline" }: VoiceQuickAddProps) {
               ? pendingPreview.subtitle
               : isAiEnabled
                 ? "AI: Gemini 3 Flash"
-                : "AI: fallback (локальный парсер)"}
+                : "AI: Gemini отключен, локальный парсер"}
           </p>
           {pendingPreview ? (
             <div className="row compact">
@@ -291,7 +291,7 @@ export function VoiceQuickAdd({ variant = "inline" }: VoiceQuickAddProps) {
       ) : null}
       {lastTranscript ? <span className="muted">Речь: {lastTranscript}</span> : null}
       {voiceMessage ? <span className="muted">{voiceMessage}</span> : null}
-      <span className="muted">AI: {isAiEnabled ? "Gemini включен" : "fallback (без API ключа)"}</span>
+      <span className="muted">AI: {isAiEnabled ? "Gemini включен" : "Gemini отключен, локальный парсер"}</span>
     </div>
   );
 }
